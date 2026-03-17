@@ -1,3 +1,4 @@
+# Feature Spec: XiangBasicRule
 # Feature Spec: ChessCardDemo
 # Feature Spec: GridSystem
 
@@ -7,6 +8,9 @@
 
 | 項目 | 值 |
 |------|-----|
+| 分支名稱 | `feature/XiangBasicRule` |
+| 基於分支 | `main` |
+| Worktree 路徑 | `E:\ChessCard-XiangBasicRule` |
 | 分支名稱 | `feature/ChessCardDemo` |
 | 基於分支 | `main` |
 | Worktree 路徑 | `E:\ChessCard-ChessCardDemo` |
@@ -17,6 +21,35 @@
 
 ## 目標
 
+**先專注實作出能夠運行「標準中國象棋基本規則」的 Demo 核心模組**。
+
+## 實作範圍
+
+- [x] 實作棋子移動驗證介面 (判斷給定起點與終點是否為合法走法)
+- [x] 實作車的走子判斷 (不可越子)
+- [x] 實作馬的走子判斷 (走日，並加入拐馬腳判斷)
+- [x] 實作象的走子判斷 (走田，並加入塞象眼判斷，不可過河)
+- [x] 實作士的走子判斷 (九宮格內斜走)
+- [x] 實作將/帥的走子判斷 (九宮格內直走，加入王見王判斷)
+- [x] 實作炮的走子判斷 (隔子打)
+- [x] 實作兵/卒的走子判斷 (過河前只能向前，過河後可左右)
+- [x] 實作吃子原則：判斷目標格是否為敵方棋子
+- [x] 實作基本勝負判斷：帥/將被吃掉作為勝負判斷點
+
+## 驗收標準
+
+- 能讓兩方交替回合進行移動。
+- 所有的棋子移動皆須通過基本規則合法性驗證。
+
+## 技術約束
+
+- 先以純邏輯實作為主。
+
+## 跨分支備註
+
+- 需依賴 `feature/GridSystem` 的座標系統與界線判斷。
+- 需依賴 `feature/ChessCardDemo` 裡的棋子資料定義。
+- 士氣與卡牌 SP 等機制會於後續階段整合。
 基於 Godot 框架，定義並實作基礎的象棋（ChessDemo）與卡牌（CardDemo）資料結構與物件。
 
 ## 實作範圍
