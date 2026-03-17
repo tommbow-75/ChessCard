@@ -1,6 +1,7 @@
-extends SceneTree
+@tool
+extends EditorScript
 
-func _init():
+func _run():
 	print("--- Running Xiangqi Basic Rule Tests ---")
 	
 	var game = XiangqiGame.new()
@@ -25,4 +26,3 @@ func _init():
 	print("Expected false, Test 4 Red move Chariot (0,9) to (0,7) [Blocked]: ", move4)
 	
 	print("--- All tests finished ---")
-	quit()
