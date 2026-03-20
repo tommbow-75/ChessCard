@@ -6,9 +6,10 @@ extends Node2D
 const CELL_SIZE := 70
 const RADIUS := 28.0
 
-# 棋子文字對應（依照 XiangqiPiece.PieceType 順序）
-const RED_CHARS   := ["帥", "仕", "相", "俥", "傌", "炮", "兵"]
-const BLACK_CHARS := ["將", "士", "象", "車", "馬", "包", "卒"]
+# index 順序對應 XiangqiPiece.PieceType:
+# 0=GENERAL, 1=ADVISOR, 2=ELEPHANT, 3=HORSE, 4=CHARIOT, 5=CANNON, 6=SOLDIER
+const RED_CHARS   := ["帥", "仕", "相", "傌", "俥", "炮", "兵"]
+const BLACK_CHARS := ["將", "士", "象", "馬", "車", "包", "卒"]
 
 var piece: XiangqiPiece
 var grid_pos: Vector2i
@@ -39,6 +40,12 @@ func _draw():
 
 	var font = ThemeDB.fallback_font
 	var font_size = 26
-	var text_size = font.get_string_size(char_text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
-	var text_pos = -text_size * 0.5 + Vector2(0, text_size.y * 0.25)
-	draw_string(font, text_pos, char_text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, text_color)
+
+	# 精確置中：利用 ascent 計算 baseline 位置
+	var text_width = font.get_string_size(char_text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	var ascent    = font.get_ascent(font_size)
+	var descent   = font.get_descent(font_size)
+	var text_height = ascent + descent
+
+	var draw_pos = Vector2(-text_width * 0.5, ascent - text_height * 0.5)
+	draw_string(font, draw_pos, char_text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, text_color)

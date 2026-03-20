@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://src/ui/XiangqiGameUI.gd" id="1_gameui"]
 [ext_resource type="Script" path="res://src/ui/BoardRenderer.gd" id="2_board"]
 [ext_resource type="Script" path="res://src/ui/GameHUD.gd" id="3_hud"]
+[ext_resource type="Script" path="res://src/ui/HintOverlay.gd" id="4_overlay"]
 
 [node name="XiangqiGameUI" type="Node2D"]
 script = ExtResource("1_gameui")
@@ -11,6 +12,9 @@ script = ExtResource("1_gameui")
 script = ExtResource("2_board")
 
 [node name="PiecesLayer" type="Node2D" parent="."]
+
+[node name="HintOverlay" type="Node2D" parent="."]
+script = ExtResource("4_overlay")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 script = ExtResource("3_hud")

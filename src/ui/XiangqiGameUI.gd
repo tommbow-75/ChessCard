@@ -8,6 +8,7 @@ const CELL_SIZE    := 70
 
 @onready var board_renderer: Node2D = $BoardRenderer
 @onready var pieces_layer:   Node2D = $PiecesLayer
+@onready var hint_overlay:   Node2D = $HintOverlay
 @onready var hud: Node         = $HUD
 
 var game: XiangqiGame
@@ -61,20 +62,25 @@ func _handle_click(grid: Vector2i):
 	_update_hints()
 
 # ──────────────────────────────────────────────
-# 合法走步提示
+# 合法走步提示（分離走步 / 吃子）
 # ──────────────────────────────────────────────
 func _update_hints():
 	board_renderer.selected_pos = selected_pos
 	board_renderer.hint_positions.clear()
+	hint_overlay.capture_positions.clear()
 
 	if selected_pos != Vector2i(-1, -1):
 		for y in range(10):
 			for x in range(9):
 				var to = Vector2i(x, y)
 				if XiangqiRuleVerifier.is_valid_move(game.board, selected_pos, to):
-					board_renderer.hint_positions.append(to)
+					if game.board.has_piece(to):
+						hint_overlay.capture_positions.append(to)  # 敵方棋子→紅點（疊在棋子上）
+					else:
+						board_renderer.hint_positions.append(to)   # 空格→藍點
 
 	board_renderer.queue_redraw()
+	hint_overlay.queue_redraw()
 
 # ──────────────────────────────────────────────
 # 重建棋子視覺
