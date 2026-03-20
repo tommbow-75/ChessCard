@@ -13,7 +13,7 @@ func _create_pieces(piece_list: Array, piece_color: Color, row_offset: int):
 		var panel = ColorRect.new()
 		panel.color = Color.WHEAT
 		panel.size = Vector2(60, 60)
-		panel.position = Vector2(offset_x + (i % 5) * 80, 100 + (row_offset * 120) + (i / 5) * 80)
+		panel.position = Vector2(offset_x + (i % 5) * 80, 50 + (row_offset * 180) + (i / 5) * 80)
 		
 		var p_label = Label.new()
 		p_label.text = piece_list[i]
