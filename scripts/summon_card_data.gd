@@ -5,7 +5,7 @@ extends CardData
 ## 專用於召喚象棋棋子的卡牌
 
 @export var summon_type: ChessPieceData.PieceType = ChessPieceData.PieceType.SOLDIER
-@export var summon_morale_value: int = 5
+@export var morale_value: int = 5
 
 ## 效果積木列表，可在 Inspector 中掛載任意 CardEffectTiming 子類別
 @export var special_effects: Array[CardEffectTiming] = []
@@ -17,8 +17,8 @@ func _init() -> void:
 func setup_default_morale() -> void:
 	match summon_type:
 		ChessPieceData.PieceType.GENERAL:
-			summon_morale_value = 30
+			morale_value = 30
 		ChessPieceData.PieceType.ADVISOR, ChessPieceData.PieceType.ELEPHANT, ChessPieceData.PieceType.CHARIOT, ChessPieceData.PieceType.HORSE, ChessPieceData.PieceType.CANNON:
-			summon_morale_value = 10
+			morale_value = 10
 		ChessPieceData.PieceType.SOLDIER:
-			summon_morale_value = 5
+			morale_value = 5

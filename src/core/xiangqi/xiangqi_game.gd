@@ -43,9 +43,9 @@ func setup_standard_board():
 	board.clear()
 	current_turn = XiangqiPiece.Side.RED
 	is_game_over = false
-	winner = -1
-	sp_red = 0
+	sp_red = 1
 	sp_black = 0
+	winner = -1
 	morale_red = 100
 	morale_black = 100
 	pending_extra_move = false
@@ -148,6 +148,30 @@ func summon_piece(card: SummonCardData, pos: Vector2i, side: int) -> bool:
 	
 	return true
 
+## 判斷 defender_side 的將是否正被威脅（將軍）
+## 遍歷攻方所有棋子，若任一走步可到達對方 General 位置 → 返回 true
+func is_in_check(defender_side: int) -> bool:
+	var attacker_side = XiangqiPiece.Side.BLACK if defender_side == XiangqiPiece.Side.RED else XiangqiPiece.Side.RED
+	
+	# 找到防守方 General 的位置
+	var general_pos = Vector2i(-1, -1)
+	for pos in board.pieces:
+		var p = board.pieces[pos]
+		if p.side == defender_side and p.type == XiangqiPiece.PieceType.GENERAL:
+			general_pos = pos
+			break
+	
+	if general_pos == Vector2i(-1, -1):
+		return false # 找不到 General（已被吃掉）
+	
+	# 遍歷攻方所有棋子，看是否有棋子能走到 general_pos
+	for pos in board.pieces:
+		var p = board.pieces[pos]
+		if p.side == attacker_side:
+			if XiangqiRuleVerifier.is_valid_move(board, pos, general_pos):
+				return true
+	return false
+
 ## 將 ChessPieceData.PieceType 轉換為 XiangqiPiece.PieceType（兩者 Enum 順序相同）
 func _card_type_to_piece_type(card_piece_type: int) -> int:
 	return card_piece_type
@@ -169,11 +193,6 @@ func move_piece(from_pos: Vector2i, to_pos: Vector2i) -> bool:
 	var did_capture = (target != null)
 	
 	if did_capture:
-		# 判斷勝負（吃將帥）
-		if target.type == XiangqiPiece.PieceType.GENERAL:
-			is_game_over = true
-			winner = current_turn
-		
 		# 攻方獲得 SP
 		_grant_capture_sp(target.type, current_turn)
 		
@@ -197,6 +216,10 @@ func move_piece(from_pos: Vector2i, to_pos: Vector2i) -> bool:
 			# 不換邊，讓同一玩家再走一次
 		else:
 			current_turn = XiangqiPiece.Side.BLACK if current_turn == XiangqiPiece.Side.RED else XiangqiPiece.Side.RED
+			if current_turn == XiangqiPiece.Side.RED:
+				sp_red += 1
+			else:
+				sp_black += 1
 
 	return true
 
