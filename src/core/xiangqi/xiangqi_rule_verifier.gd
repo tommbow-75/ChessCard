@@ -15,7 +15,18 @@ static func is_valid_move(board: XiangqiBoard, from_pos: Vector2i, to_pos: Vecto
 	var target_piece = board.get_piece(to_pos)
 	if target_piece != null and target_piece.side == piece.side:
 		return false # 不能吃自己的子
-		
+
+	# ── 天生效果攔截 ──────────────────────────────────────────────
+
+	# cannot_eat_effect：若棋子帶有此效果，阻止吃掉指定類型的目標
+	if target_piece != null:
+		for effect in piece.special_effects:
+			if effect is CannotEatEffect:
+				if target_piece.type == effect.forbidden_target:
+					return false
+
+	# ── 走法驗證 ──────────────────────────────────────────────────
+
 	var valid = false
 	match piece.type:
 		XiangqiPiece.PieceType.CHARIOT:
@@ -32,13 +43,54 @@ static func is_valid_move(board: XiangqiBoard, from_pos: Vector2i, to_pos: Vecto
 			valid = _check_cannon(board, from_pos, to_pos)
 		XiangqiPiece.PieceType.SOLDIER:
 			valid = _check_soldier(piece.side, board, from_pos, to_pos)
-			
+
+	# ── 天生效果注入額外走法 ──────────────────────────────────────
+
+	# dual_movement_effect（鐵衛）：天生允許另一種棋子的走法
+	if not valid:
+		for effect in piece.special_effects:
+			if effect is DualMovementEffect:
+				valid = _check_by_piece_type(effect.extra_piece_type, piece.side, board, from_pos, to_pos)
+				if valid:
+					break
+
+	# knight_leap_available（騎士一次性躍遷：(±1,±3)或(±3,±1)，無視拐腳）
+	if not valid and piece.knight_leap_available:
+		valid = _check_knight_leap(from_pos, to_pos)
+		
 	if not valid:
 		return false
 		
 	# 判斷王見王 (Flying General)
-	# 如果移動後導致雙方將帥直接面對面且中間無子，則此為非法走法
 	return _check_flying_general_after_move(board, from_pos, to_pos)
+
+# ── 輔助：依棋子種類驗證走法 ──────────────────────────────────────
+
+static func _check_by_piece_type(piece_type: int, side: int, board: XiangqiBoard, from_pos: Vector2i, to_pos: Vector2i) -> bool:
+	match piece_type:
+		XiangqiPiece.PieceType.CHARIOT:
+			return _check_chariot(board, from_pos, to_pos)
+		XiangqiPiece.PieceType.HORSE:
+			return _check_horse(board, from_pos, to_pos)
+		XiangqiPiece.PieceType.ELEPHANT:
+			return _check_elephant(side, board, from_pos, to_pos)
+		XiangqiPiece.PieceType.ADVISOR:
+			return _check_advisor(side, board, from_pos, to_pos)
+		XiangqiPiece.PieceType.GENERAL:
+			return _check_general(side, board, from_pos, to_pos)
+		XiangqiPiece.PieceType.CANNON:
+			return _check_cannon(board, from_pos, to_pos)
+		XiangqiPiece.PieceType.SOLDIER:
+			return _check_soldier(side, board, from_pos, to_pos)
+	return false
+
+# 騎士躍遷：(dx,dy) 為 (1,3)(3,1) 及其所有符號組合，無視拐馬腳
+static func _check_knight_leap(from_pos: Vector2i, to_pos: Vector2i) -> bool:
+	var dx = abs(to_pos.x - from_pos.x)
+	var dy = abs(to_pos.y - from_pos.y)
+	return (dx == 1 and dy == 3) or (dx == 3 and dy == 1)
+
+# ── 原有各棋子走法（保持不變）────────────────────────────────────
 
 static func count_pieces_between_straight(board: XiangqiBoard, p1: Vector2i, p2: Vector2i) -> int:
 	if p1.x != p2.x and p1.y != p2.y:
@@ -164,7 +216,7 @@ static func _check_flying_general_after_move(board: XiangqiBoard, from_pos: Vect
 			var count = count_pieces_between_straight(board, red_general_pos, black_general_pos)
 			if count == 0:
 				valid = false # 王見王
-				
+			
 	# 復原移動
 	board.remove_piece(to_pos)
 	if original_target != null:

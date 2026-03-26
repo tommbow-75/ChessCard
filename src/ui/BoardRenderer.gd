@@ -28,7 +28,7 @@ func _draw():
 
 	# ── 棋盤背景 ──────────────────────────────────
 	draw_rect(
-		Rect2(ox - 25, oy - 25, board_width + 50, board_height + 50),
+		Rect2(ox - 70, oy - 70, board_width + 140, board_height + 140),
 		Color(0.863, 0.71, 0.361)
 	)
 
@@ -72,6 +72,10 @@ func _draw():
 		var center = board_to_screen(selected_pos)
 		draw_circle(center, CELL_SIZE * 0.42, Color(1.0, 0.6, 0.1, 0.4))
 		draw_arc(center, CELL_SIZE * 0.42, 0, TAU, 32, Color(1.0, 0.6, 0.1), 3)
+
+	# ── 座標軸標示 ─────────────────────────────────
+	_draw_axis_labels(ox, oy)
+
 
 # ──────────────────────────────────────────────────────
 # 真實棋盤十字（括弧）標示
@@ -138,3 +142,29 @@ func _draw_river_text(font: Font, font_size: int, text: String, pos: Vector2):
 	var text_height = font.get_height(font_size)
 	var draw_pos = pos + Vector2(-text_width * 0.5, ascent - text_height * 0.5)
 	draw_string(font, draw_pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color(0.3, 0.15, 0.0, 0.85))
+
+## 棋盤 XY 座標軸標示
+## X 軸：棋盤上方，1~9 對應 col 0~8
+## Y 軸：棋盤左方，1~10 對應 row 0~9
+func _draw_axis_labels(ox: float, oy: float):
+	var font = ThemeDB.fallback_font
+	var font_size = 14
+	var col = Color(0.2, 0.2, 0.5, 0.9)
+
+	# X 軸（上方）
+	for c in range(COLS):
+		var label = str(c)
+		var lw = font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+		var x = ox + c * CELL_SIZE - lw * 0.5
+		var y = oy - 15 - font.get_descent(font_size)
+		draw_string(font, Vector2(x, y), label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, col)
+
+	# Y 軸（左方）
+	for r in range(ROWS):
+		var label = str(9 - r)
+		var lw = font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+		var x = ox - lw - 15
+		var ascent = font.get_ascent(font_size)
+		var y = oy + r * CELL_SIZE + ascent * 0.5
+		draw_string(font, Vector2(x, y), label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, col)
+
