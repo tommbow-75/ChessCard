@@ -23,6 +23,11 @@ func _draw():
 	if piece == null:
 		return
 
+	if piece.is_stunned:
+		modulate = Color(0.5, 0.5, 0.5)
+	else:
+		modulate = Color(1, 1, 1)
+
 	var is_red = (piece.side == XiangqiPiece.Side.RED)
 
 	# 外圈（深色）

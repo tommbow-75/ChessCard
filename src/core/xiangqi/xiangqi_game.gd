@@ -186,6 +186,9 @@ func move_piece(from_pos: Vector2i, to_pos: Vector2i) -> bool:
 	if piece == null or piece.side != current_turn:
 		return false
 		
+	if piece.is_stunned:
+		return false
+		
 	if not XiangqiRuleVerifier.is_valid_move(board, from_pos, to_pos):
 		return false
 		
@@ -216,12 +219,65 @@ func move_piece(from_pos: Vector2i, to_pos: Vector2i) -> bool:
 			# 不換邊，讓同一玩家再走一次
 		else:
 			current_turn = XiangqiPiece.Side.BLACK if current_turn == XiangqiPiece.Side.RED else XiangqiPiece.Side.RED
-			if current_turn == XiangqiPiece.Side.RED:
-				sp_red += 1
-			else:
-				sp_black += 1
+			_start_new_turn(current_turn)
 
 	return true
+
+func _start_new_turn(side: int) -> void:
+	if side == XiangqiPiece.Side.RED:
+		sp_red += 1
+	else:
+		sp_black += 1
+	
+	# 解除該陣營棋子的暈眩
+	for y in range(10):
+		for x in range(9):
+			var p = board.get_piece(Vector2i(x, y))
+			if p != null and p.side == side and p.is_stunned:
+				p.stun_duration -= 1
+				if p.stun_duration <= 0:
+					p.is_stunned = false
+
+## ── 謀略卡系統 ──────────────────────────────────────────────────
+
+func play_strategy_card(card: StrategyCardData, target_pos: Vector2i = Vector2i(-1, -1)) -> bool:
+	if is_game_over: return false
+	
+	# 檢查 SP
+	var current_sp = sp_red if current_turn == XiangqiPiece.Side.RED else sp_black
+	if current_sp < card.sp_cost:
+		return false
+	
+	# 執行所有 effects
+	for eff in card.special_effects:
+		if eff is StragetyEffect:
+			var context = {"game": self, "caster_side": current_turn, "target_pos": target_pos}
+			if eff.target_type == StragetyEffect.TargetType.NONE or eff.is_valid_target(target_pos, context):
+				eff.execute(context)
+			else:
+				return false # 不合法目標
+				
+	# 扣除 SP
+	if current_turn == XiangqiPiece.Side.RED:
+		sp_red -= card.sp_cost
+	else:
+		sp_black -= card.sp_cost
+		
+	return true
+
+func get_valid_strategy_targets(card: StrategyCardData) -> Array[Vector2i]:
+	var valid_poses: Array[Vector2i] = []
+	if card.special_effects.size() == 0: return valid_poses
+	var eff = card.special_effects[0]
+	if eff.target_type == StragetyEffect.TargetType.NONE: return valid_poses
+	
+	for y in range(10):
+		for x in range(9):
+			var pos = Vector2i(x, y)
+			var context = {"game": self, "caster_side": current_turn, "target_pos": pos}
+			if eff.is_valid_target(pos, context):
+				valid_poses.append(pos)
+	return valid_poses
 
 ## ── 私有輔助函式 ──────────────────────────────────────────────────
 

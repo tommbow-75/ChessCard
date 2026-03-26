@@ -14,5 +14,5 @@ enum Timing {
 
 # 實際的效果內容（留給子類別去實作）
 # 傳入 context (字典) 可以把當下的遊戲狀態、發起者、目標都傳進來
-func execute(context: Dictionary) -> void:
-    pass
+func execute(_context: Dictionary) -> void:
+	pass
