@@ -7,6 +7,9 @@ extends CardData
 @export var summon_type: ChessPieceData.PieceType = ChessPieceData.PieceType.SOLDIER
 @export var summon_morale_value: int = 5
 
+## 效果積木列表，可在 Inspector 中掛載任意 CardEffectTiming 子類別
+@export var special_effects: Array[CardEffectTiming] = []
+
 func _init() -> void:
 	category = CardCategory.SUMMON
 

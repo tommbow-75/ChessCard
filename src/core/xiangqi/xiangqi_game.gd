@@ -6,11 +6,49 @@ var current_turn: int = XiangqiPiece.Side.RED
 var is_game_over: bool = false
 var winner: int = -1
 
+## ── 進階規則：SP & 士氣 ──────────────────────────────────────────
+var sp_red: int = 0
+var sp_black: int = 0
+var morale_red: int = 100
+var morale_black: int = 100
+
+## 火焰車效果：若為 true，本次移動後不換邊，允許再走一次
+var pending_extra_move: bool = false
+
+## 吃子 SP 獎勵表（依 AdvancedRule.md §1-1）
+const CAPTURE_SP_TABLE: Dictionary = {
+	XiangqiPiece.PieceType.SOLDIER:  1,
+	XiangqiPiece.PieceType.HORSE:    2,
+	XiangqiPiece.PieceType.CHARIOT:  2,
+	XiangqiPiece.PieceType.CANNON:   2,
+	XiangqiPiece.PieceType.ELEPHANT: 1,
+	XiangqiPiece.PieceType.ADVISOR:  1,
+	XiangqiPiece.PieceType.GENERAL:  3,
+}
+
+## 被吃子士氣扣除表（依 README.md Morale Values）
+const CAPTURE_MORALE_TABLE: Dictionary = {
+	XiangqiPiece.PieceType.SOLDIER:  5,
+	XiangqiPiece.PieceType.HORSE:    10,
+	XiangqiPiece.PieceType.CHARIOT:  10,
+	XiangqiPiece.PieceType.CANNON:   10,
+	XiangqiPiece.PieceType.ELEPHANT: 10,
+	XiangqiPiece.PieceType.ADVISOR:  10,
+	XiangqiPiece.PieceType.GENERAL:  30,
+}
+
+# ─────────────────────────────────────────────────────────────────
+
 func setup_standard_board():
 	board.clear()
 	current_turn = XiangqiPiece.Side.RED
 	is_game_over = false
 	winner = -1
+	sp_red = 0
+	sp_black = 0
+	morale_red = 100
+	morale_black = 100
+	pending_extra_move = false
 	
 	# Setting up BLACK
 	board.set_piece(Vector2i(0,0), XiangqiPiece.new(XiangqiPiece.Side.BLACK, XiangqiPiece.PieceType.CHARIOT))
@@ -46,6 +84,76 @@ func setup_standard_board():
 	for i in range(5):
 		board.set_piece(Vector2i(i*2, 6), XiangqiPiece.new(XiangqiPiece.Side.RED, XiangqiPiece.PieceType.SOLDIER))
 
+## ── SP 系統 ──────────────────────────────────────────────────────
+
+## 回合開始：呼叫此函式讓當前玩家獲得 1 SP（AdvancedRule §1-1.1）
+func start_turn() -> void:
+	if current_turn == XiangqiPiece.Side.RED:
+		sp_red += 1
+	else:
+		sp_black += 1
+
+## 取得指定陣營的當前 SP
+func get_sp(side: int) -> int:
+	return sp_red if side == XiangqiPiece.Side.RED else sp_black
+
+## 取得指定陣營的當前士氣
+func get_morale(side: int) -> int:
+	return morale_red if side == XiangqiPiece.Side.RED else morale_black
+
+## ── 召喚邏輯 ─────────────────────────────────────────────────────
+
+## 判斷目標格是否在指定陣營的基礎規則點（入場區）
+## 紅方：y = 6~9，黑方：y = 0~3
+func _is_basic_rule_position(pos: Vector2i, side: int) -> bool:
+	if board.is_out_of_bounds(pos):
+		return false
+	if side == XiangqiPiece.Side.RED:
+		return pos.y >= 6 and pos.y <= 9
+	else:
+		return pos.y >= 0 and pos.y <= 3
+
+## 召喚一張召喚卡到棋盤上
+## 回傳 true 代表成功，false 代表失敗（SP 不足、格子被佔 或 位置不合法）
+func summon_piece(card: SummonCardData, pos: Vector2i, side: int) -> bool:
+	# 1. 位置必須在本方入場區
+	if not _is_basic_rule_position(pos, side):
+		return false
+	
+	# 2. 目標格不可有任何棋子
+	if board.has_piece(pos):
+		return false
+	
+	# 3. SP 必須足夠
+	if get_sp(side) < card.sp_cost:
+		return false
+	
+	# 4. 扣除 SP
+	if side == XiangqiPiece.Side.RED:
+		sp_red -= card.sp_cost
+	else:
+		sp_black -= card.sp_cost
+	
+	# 5. 建立棋子並複製效果積木
+	var piece_type: int = _card_type_to_piece_type(card.summon_type)
+	var piece = XiangqiPiece.new(side, piece_type)
+	piece.special_effects = card.special_effects.duplicate()
+	board.set_piece(pos, piece)
+	
+	# 6. 觸發所有 SUMMON 類效果
+	var context = {"game_state": self, "side": side, "piece": piece}
+	for effect in piece.special_effects:
+		if effect.timing == CardEffectTiming.Timing.SUMMON:
+			effect.execute(context)
+	
+	return true
+
+## 將 ChessPieceData.PieceType 轉換為 XiangqiPiece.PieceType（兩者 Enum 順序相同）
+func _card_type_to_piece_type(card_piece_type: int) -> int:
+	return card_piece_type
+
+## ── 移動邏輯 ─────────────────────────────────────────────────────
+
 func move_piece(from_pos: Vector2i, to_pos: Vector2i) -> bool:
 	if is_game_over:
 		return false
@@ -58,14 +166,79 @@ func move_piece(from_pos: Vector2i, to_pos: Vector2i) -> bool:
 		return false
 		
 	var target = board.get_piece(to_pos)
-	if target != null and target.type == XiangqiPiece.PieceType.GENERAL:
-		is_game_over = true
-		winner = current_turn
+	var did_capture = (target != null)
+	
+	if did_capture:
+		# 判斷勝負（吃將帥）
+		if target.type == XiangqiPiece.PieceType.GENERAL:
+			is_game_over = true
+			winner = current_turn
 		
+		# 攻方獲得 SP
+		_grant_capture_sp(target.type, current_turn)
+		
+		# 扣除被吃方士氣
+		_deduct_capture_morale(target.type, target.side)
+		
+		# 觸發攻方棋子天生效果（如猛將吃子回血）
+		_trigger_born_capture_effects(piece)
+	
 	board.remove_piece(from_pos)
 	board.set_piece(to_pos, piece)
 	
+	# 觸發一次性效果（吃子後才有意義，但部分效果也可在普通移動觸發）
+	if did_capture:
+		_trigger_and_consume_once_effects(piece)
+	
+	# 判斷是否有「再移動一次」的 pending 狀態
 	if not is_game_over:
-		current_turn = XiangqiPiece.Side.BLACK if current_turn == XiangqiPiece.Side.RED else XiangqiPiece.Side.RED
+		if pending_extra_move:
+			pending_extra_move = false
+			# 不換邊，讓同一玩家再走一次
+		else:
+			current_turn = XiangqiPiece.Side.BLACK if current_turn == XiangqiPiece.Side.RED else XiangqiPiece.Side.RED
 
 	return true
+
+## ── 私有輔助函式 ──────────────────────────────────────────────────
+
+## 依照吃子種類給攻方 SP
+func _grant_capture_sp(piece_type: int, attacker_side: int) -> void:
+	var amount: int = CAPTURE_SP_TABLE.get(piece_type, 0)
+	if attacker_side == XiangqiPiece.Side.RED:
+		sp_red += amount
+	else:
+		sp_black += amount
+
+## 依照被吃子種類扣除擁有方士氣
+func _deduct_capture_morale(piece_type: int, victim_side: int) -> void:
+	var amount: int = CAPTURE_MORALE_TABLE.get(piece_type, 0)
+	if victim_side == XiangqiPiece.Side.RED:
+		morale_red = max(0, morale_red - amount)
+		if morale_red == 0 and not is_game_over:
+			is_game_over = true
+			winner = XiangqiPiece.Side.BLACK
+	else:
+		morale_black = max(0, morale_black - amount)
+		if morale_black == 0 and not is_game_over:
+			is_game_over = true
+			winner = XiangqiPiece.Side.RED
+
+## 吃子後觸發棋子上所有 BORN 的吃子類效果（如猛將回血）
+func _trigger_born_capture_effects(piece: XiangqiPiece) -> void:
+	var context = {"game_state": self, "side": piece.side, "piece": piece}
+	for effect in piece.special_effects:
+		if effect.timing == CardEffectTiming.Timing.BORN:
+			if effect is RestoreOnCaptureEffect:
+				effect.execute(context)
+
+## 吃子後觸發棋子上所有 ONCE 的效果，執行後從列表移除
+func _trigger_and_consume_once_effects(piece: XiangqiPiece) -> void:
+	var context = {"game_state": self, "side": piece.side, "piece": piece}
+	var to_remove: Array = []
+	for effect in piece.special_effects:
+		if effect.timing == CardEffectTiming.Timing.ONCE:
+			effect.execute(context)
+			to_remove.append(effect)
+	for e in to_remove:
+		piece.special_effects.erase(e)

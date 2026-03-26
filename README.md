@@ -33,11 +33,11 @@
 | 棋子種類 (Piece) | 扣除士氣值 (Morale Cost) |
 | :--- | :--- |
 | **帥 / 將** (General) | 30 |
-| **士** (Advisor) | 10 |
-| **象** (Elephant) | 10 |
-| **車** (Chariot) | 10 |
-| **馬** (Horse) | 10 |
-| **砲** (Cannon) | 10 |
+| **仕 / 士** (Advisor) | 10 |
+| **相 / 象** (Elephant) | 10 |
+| **俥 / 車** (Chariot) | 10 |
+| **傌 / 馬** (Horse) | 10 |
+| **炮 / 包** (Cannon) | 10 |
 | **兵 / 卒** (Soldier) | 5 |
 
 ---
