@@ -1,5 +1,5 @@
 class_name ExtraMoveEffect
-extends CardEffectTiming
+extends SummonEffectTiming
 
 ## 一次性效果：吃子後可以再移動一次
 ## 用於：火焰車

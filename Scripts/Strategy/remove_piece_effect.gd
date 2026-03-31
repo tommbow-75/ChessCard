@@ -1,5 +1,5 @@
 class_name RemovePieceEffect
-extends StragetyEffect
+extends StrategyEffectTiming
 
 ## 移除棋子效果
 ## 可配置為：

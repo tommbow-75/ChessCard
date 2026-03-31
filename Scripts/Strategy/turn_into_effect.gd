@@ -1,5 +1,5 @@
 class_name TurnIntoEffect
-extends StragetyEffect
+extends StrategyEffectTiming
 
 ## 變換棋子效果
 ## 用途：

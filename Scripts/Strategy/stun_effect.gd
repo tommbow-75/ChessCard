@@ -1,5 +1,5 @@
 class_name StunEffect
-extends StragetyEffect
+extends StrategyEffectTiming
 
 ## 暈眩：選敵方一子（非將帥），下回合不可移動
 

@@ -1,5 +1,5 @@
 class_name DualMovementEffect
-extends CardEffectTiming
+extends SummonEffectTiming
 
 ## 天生效果：此棋子同時擁有另一種棋子的走法
 ## 用於：鐵衛（同時擁有將帥 & 士仕走法）

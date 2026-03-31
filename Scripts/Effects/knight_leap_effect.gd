@@ -1,5 +1,5 @@
 class_name KnightLeapEffect
-extends CardEffectTiming
+extends SummonEffectTiming
 
 ## 一次性效果：允許此棋子使用一次超距跳躍走法
 ## 走到相對位置 (±1,±3) 或 (±3,±1) 均合法（無視拐馬腳）

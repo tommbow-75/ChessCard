@@ -57,8 +57,8 @@ func _input(event: InputEvent):
 				var h_poses: Array[Vector2i] = [grid]
 				# 如果是 AREA_3X3 模式，顯示周圍 3x3 預覽
 				var first_eff = targeting_strategy.special_effects[0] if targeting_strategy.special_effects.size() > 0 else null
-				if first_eff != null and first_eff is StragetyEffect and \
-						first_eff.target_mode == StragetyEffect.TargetMode.AREA_3X3:
+				if first_eff != null and first_eff is StrategyEffectTiming and \
+						first_eff.target_mode == StrategyEffectTiming.TargetMode.AREA_3X3:
 					for dx in range(-1, 2):
 						for dy in range(-1, 2):
 							if dx == 0 and dy == 0: continue

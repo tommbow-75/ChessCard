@@ -151,7 +151,7 @@ func summon_piece(card: SummonCardData, pos: Vector2i, side: int) -> bool:
 	# 6. 觸發所有 SUMMON 類效果
 	var context = {"game_state": self, "side": side, "piece": piece}
 	for effect in piece.special_effects:
-		if effect.timing == CardEffectTiming.Timing.SUMMON:
+		if effect.timing == SummonEffectTiming.Timing.SUMMON:
 			effect.execute(context)
 	
 	return true
@@ -262,10 +262,10 @@ func play_strategy_card(card: StrategyCardData, target_pos: Vector2i = Vector2i(
 
 	# 執行所有 effects
 	for eff in card.special_effects:
-		if not (eff is StragetyEffect):
+		if not (eff is StrategyEffectTiming):
 			continue
 		var context = {"game": self, "caster_side": current_turn, "target_pos": target_pos}
-		if eff.target_faction == StragetyEffect.TargetFaction.NONE:
+		if eff.target_mode == StrategyEffectTiming.TargetMode.NONE:
 			# 不需要目標，直接發動
 			context["affected_positions"] = []
 			eff.execute(context)
@@ -293,12 +293,12 @@ func get_valid_strategy_targets(card: StrategyCardData) -> Array[Vector2i]:
 	var valid_poses: Array[Vector2i] = []
 	if card.special_effects.size() == 0:
 		return valid_poses
-	var eff = card.special_effects[0] as StragetyEffect
-	if eff == null or eff.target_faction == StragetyEffect.TargetFaction.NONE:
+	var eff = card.special_effects[0] as StrategyEffectTiming
+	if eff == null or eff.target_mode == StrategyEffectTiming.TargetMode.NONE:
 		return valid_poses
 
 	# AREA_3X3: 中心點不限，任何格都可選
-	if eff.target_mode == StragetyEffect.TargetMode.AREA_3X3:
+	if eff.target_mode == StrategyEffectTiming.TargetMode.AREA_3X3:
 		for y in range(10):
 			for x in range(9):
 				valid_poses.append(Vector2i(x, y))
@@ -341,7 +341,7 @@ func _deduct_capture_morale(piece_type: int, victim_side: int) -> void:
 func _trigger_born_capture_effects(piece: XiangqiPiece) -> void:
 	var context = {"game_state": self, "side": piece.side, "piece": piece}
 	for effect in piece.special_effects:
-		if effect.timing == CardEffectTiming.Timing.BORN:
+		if effect.timing == SummonEffectTiming.Timing.BORN:
 			if effect is RestoreOnCaptureEffect:
 				effect.execute(context)
 
@@ -350,7 +350,7 @@ func _trigger_and_consume_once_effects(piece: XiangqiPiece) -> void:
 	var context = {"game_state": self, "side": piece.side, "piece": piece}
 	var to_remove: Array = []
 	for effect in piece.special_effects:
-		if effect.timing == CardEffectTiming.Timing.ONCE:
+		if effect.timing == SummonEffectTiming.Timing.ONCE:
 			effect.execute(context)
 			to_remove.append(effect)
 	for e in to_remove:

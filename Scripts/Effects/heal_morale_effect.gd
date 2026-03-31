@@ -1,5 +1,5 @@
 class_name HealMoraleEffect
-extends CardEffectTiming
+extends SummonEffectTiming
 
 ## 召喚效果：召喚當下立即回復指定士氣
 ## 用於：醫生象（+5 士氣）

@@ -1,10 +1,10 @@
 class_name MoveRightnowEffect
-extends StragetyEffect
+extends StrategyEffectTiming
 
 ## 調度：移動所有己方 soldier 向前一格（不可吃子）
 
 func _init() -> void:
-	target_faction = TargetFaction.NONE  # 直接發動，不需目標
+	target_mode = TargetMode.NONE  # 直接發動（全場掃描，不需選格）
 
 func execute(context: Dictionary) -> void:
 	var game = context.get("game")

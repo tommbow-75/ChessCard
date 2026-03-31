@@ -1,10 +1,10 @@
 class_name DiscountMoraleEffect
-extends StragetyEffect
+extends StrategyEffectTiming
 
 @export var damage_amount: int = 5
 
 func _init() -> void:
-	target_faction = TargetFaction.NONE  # 直接發動，不需目標
+	target_mode = TargetMode.NONE  # 直接發動，不需選格
 
 func execute(context: Dictionary) -> void:
 	var game = context.get("game")
