@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="StrategyCardData" format=3 uid="uid://cwvdpa8mfjur6"]
+
+[ext_resource type="Script" uid="uid://cdqbrp6keu1b0" path="res://Scripts/strategy_card_data.gd" id="1_ucqyf"]
+[ext_resource type="Script" uid="uid://diu85jjqvlcte" path="res://Scripts/Stragety/stragety_effect.gd" id="2_h8a3c"]
+[ext_resource type="Script" uid="uid://cb0kttqxx60ja" path="res://Scripts/Stragety/remove_piece_effect.gd" id="3_h8a3c"]
+
+[sub_resource type="Resource" id="Resource_r28m6"]
+script = ExtResource("3_h8a3c")
+target_faction = 3
+target_piece_mask = 126
+target_mode = 1
+metadata/_custom_type_script = "uid://cb0kttqxx60ja"
+
+[resource]
+script = ExtResource("1_ucqyf")
+special_effects = Array[ExtResource("2_h8a3c")]([SubResource("Resource_r28m6")])
+id = "boulder_SC"
+card_name = "巨石"
+sp_cost = 6
+effect_description = "選擇一點，將其9宮格範圍內所有旗子全部移除(無論敵我，但無法移除將帥)"
+metadata/_custom_type_script = "uid://cdqbrp6keu1b0"

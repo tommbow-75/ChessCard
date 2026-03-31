@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="StrategyCardData" format=3 uid="uid://bhj4ivlgb3vpk"]
+
+[ext_resource type="Script" uid="uid://cdqbrp6keu1b0" path="res://Scripts/strategy_card_data.gd" id="1_egsv4"]
+[ext_resource type="Script" uid="uid://diu85jjqvlcte" path="res://Scripts/Stragety/stragety_effect.gd" id="2_aqll8"]
+[ext_resource type="Script" uid="uid://c3784odebjj2" path="res://Scripts/Stragety/turn_into_effect.gd" id="3_aqll8"]
+
+[sub_resource type="Resource" id="Resource_xt7j6"]
+script = ExtResource("3_aqll8")
+transform_result = 2
+target_faction = 2
+target_piece_mask = 126
+metadata/_custom_type_script = "uid://c3784odebjj2"
+
+[resource]
+script = ExtResource("1_egsv4")
+special_effects = Array[ExtResource("2_aqll8")]([SubResource("Resource_xt7j6")])
+id = "rebel_SC"
+card_name = "策反"
+sp_cost = 5
+effect_description = "將1敵方棋子變更為己方basic棋子(除了General)"
+metadata/_custom_type_script = "uid://cdqbrp6keu1b0"

@@ -15,6 +15,11 @@ var morale_black: int = 100
 ## 火焰車效果：若為 true，本次移動後不換邊，允許再走一次
 var pending_extra_move: bool = false
 
+## ── 牌庫系統 ──────────────────────────────────────────────────────
+## 每個玩家各自擁有一個牌庫；預設為空，遊戲開始前需透過 build_deck() 建立
+var deck_red: DeckSystem = DeckSystem.new()
+var deck_black: DeckSystem = DeckSystem.new()
+
 ## 吃子 SP 獎勵表（依 AdvancedRule.md §1-1）
 const CAPTURE_SP_TABLE: Dictionary = {
 	XiangqiPiece.PieceType.SOLDIER:  1,
@@ -49,6 +54,9 @@ func setup_standard_board():
 	morale_red = 100
 	morale_black = 100
 	pending_extra_move = false
+	# 重置牌庫（保留原有牌組，若已透過 build_deck 建立則重新洗牌）
+	deck_red = DeckSystem.new()
+	deck_black = DeckSystem.new()
 	
 	# Setting up BLACK
 	board.set_piece(Vector2i(0,0), XiangqiPiece.new(XiangqiPiece.Side.BLACK, XiangqiPiece.PieceType.CHARIOT))
@@ -228,7 +236,11 @@ func _start_new_turn(side: int) -> void:
 		sp_red += 1
 	else:
 		sp_black += 1
-	
+
+	# 回合開始：該陣營抽一張謀略卡
+	var deck = deck_red if side == XiangqiPiece.Side.RED else deck_black
+	deck.draw_card()
+
 	# 解除該陣營棋子的暈眩
 	for y in range(10):
 		for x in range(9):
@@ -242,35 +254,57 @@ func _start_new_turn(side: int) -> void:
 
 func play_strategy_card(card: StrategyCardData, target_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	if is_game_over: return false
-	
+
 	# 檢查 SP
 	var current_sp = sp_red if current_turn == XiangqiPiece.Side.RED else sp_black
 	if current_sp < card.sp_cost:
 		return false
-	
+
 	# 執行所有 effects
 	for eff in card.special_effects:
-		if eff is StragetyEffect:
-			var context = {"game": self, "caster_side": current_turn, "target_pos": target_pos}
-			if eff.target_type == StragetyEffect.TargetType.NONE or eff.is_valid_target(target_pos, context):
-				eff.execute(context)
-			else:
-				return false # 不合法目標
-				
+		if not (eff is StragetyEffect):
+			continue
+		var context = {"game": self, "caster_side": current_turn, "target_pos": target_pos}
+		if eff.target_faction == StragetyEffect.TargetFaction.NONE:
+			# 不需要目標，直接發動
+			context["affected_positions"] = []
+			eff.execute(context)
+		else:
+			# 計算实際作用的格子列表
+			var affected = eff.get_affected_cells(target_pos, context)
+			if affected.is_empty():
+				return false  # 目標不合法
+			context["affected_positions"] = affected
+			eff.execute(context)
+
 	# 扣除 SP
 	if current_turn == XiangqiPiece.Side.RED:
 		sp_red -= card.sp_cost
 	else:
 		sp_black -= card.sp_cost
-		
+
+	# 使用後：將卡牌移入棄牌區
+	var deck = deck_red if current_turn == XiangqiPiece.Side.RED else deck_black
+	deck.play_card(card)
+
 	return true
 
 func get_valid_strategy_targets(card: StrategyCardData) -> Array[Vector2i]:
 	var valid_poses: Array[Vector2i] = []
-	if card.special_effects.size() == 0: return valid_poses
-	var eff = card.special_effects[0]
-	if eff.target_type == StragetyEffect.TargetType.NONE: return valid_poses
-	
+	if card.special_effects.size() == 0:
+		return valid_poses
+	var eff = card.special_effects[0] as StragetyEffect
+	if eff == null or eff.target_faction == StragetyEffect.TargetFaction.NONE:
+		return valid_poses
+
+	# AREA_3X3: 中心點不限，任何格都可選
+	if eff.target_mode == StragetyEffect.TargetMode.AREA_3X3:
+		for y in range(10):
+			for x in range(9):
+				valid_poses.append(Vector2i(x, y))
+		return valid_poses
+
+	# SINGLE: 嚴格驗證每格
 	for y in range(10):
 		for x in range(9):
 			var pos = Vector2i(x, y)

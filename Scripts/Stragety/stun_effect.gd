@@ -1,21 +1,18 @@
 class_name StunEffect
 extends StragetyEffect
 
-func _init() -> void:
-	target_type = TargetType.SINGLE_ENEMY_NON_GENERAL
+## 暈眩：選敵方一子（非將帥），下回合不可移動
 
-func is_valid_target(board_pos: Vector2i, context: Dictionary) -> bool:
-	var game = context.get("game")
-	var piece = game.board.get_piece(board_pos)
-	if piece == null: return false
-	if piece.side == context.get("caster_side"): return false
-	if piece.type == piece.PieceType.GENERAL: return false
-	return true
+func _init() -> void:
+	target_faction  = TargetFaction.ENEMY
+	target_piece_mask = PIECE_ALL & ~PIECE_GENERAL  # 除了將帥之外全部
+	target_mode     = TargetMode.SINGLE
 
 func execute(context: Dictionary) -> void:
 	var game = context.get("game")
-	var pos: Vector2i = context.get("target_pos")
-	var target = game.board.get_piece(pos)
-	if target != null:
-		target.is_stunned = true
-		target.stun_duration = 2 # 敵方與我方輪轉各一次 = 1完整回合
+	var affected: Array = context.get("affected_positions", [])
+	for pos in affected:
+		var target = game.board.get_piece(pos)
+		if target != null:
+			target.is_stunned = true
+			target.stun_duration = 2  # 敵方與我方輪轉各一次 = 1 完整回合

@@ -1,24 +1,129 @@
 class_name StragetyEffect
 extends Resource
 
-## 目標選取類型
-enum TargetType {
-	NONE,                       # 不需目標（直接發動）
-	SINGLE_ENEMY_NON_GENERAL,   # 單一非將帥的敵方棋子
-	AREA_3X3_ANY,               # 任一格子（九宮格範圍）
-	ANY_NON_GENERAL,            # 任何非將帥棋子
-	ANY_SOLDIER,                # 任何兵卒
+## 目標選取 - Level 1：陣營
+enum TargetFaction {
+	NONE,   # 不需目標，直接發動
+	SELF,   # 選自方格子
+	ENEMY,  # 選敵方格子
+	ANY,    # 任何格子（不分陣營）
 }
 
-## 告知 UI 這張卡的效果需要什麼目標
-@export var target_type: TargetType = TargetType.NONE
+## 目標選取 - Level 3：選擇模式
+enum TargetMode {
+	SINGLE,     # 點選單一格
+	AREA_3X3,   # 點選中心格，影響周圍 3×3 所有格
+}
 
-## 判斷特定格子的目標對此效果是否合法
-## context: {"game": XiangqiGame, "caster_side": Side}
-func is_valid_target(_board_pos: Vector2i, _context: Dictionary) -> bool:
-	return true
+## ── Level 2 Piece bitmask 常數 ──────────────────────────────────────
+const PIECE_GENERAL  := 1    # bit 0
+const PIECE_ADVISOR  := 2    # bit 1
+const PIECE_ELEPHANT := 4    # bit 2
+const PIECE_HORSE    := 8    # bit 3
+const PIECE_CHARIOT  := 16   # bit 4
+const PIECE_CANNON   := 32   # bit 5
+const PIECE_SOLDIER  := 64   # bit 6
+const PIECE_EMPTY    := 128  # bit 7（空格）
+const PIECE_ALL      := 255  # 全選
 
-## 實際執行效果
-## context: {"game": XiangqiGame, "caster_side": Side}, 以及可選的 "target_pos": Vector2i
+## ── 三層 Export 欄位 ─────────────────────────────────────────────────
+## L1：陣營
+@export var target_faction: TargetFaction = TargetFaction.NONE
+
+## L2：可選棋子種類（bitmask，可複選；NONE 時無效）
+@export_flags("General", "Advisor", "Elephant", "Horse", "Chariot", "Cannon", "Soldier", "Empty")
+var target_piece_mask: int = PIECE_ALL
+
+## L3：選擇模式（NONE faction 時無效）
+@export var target_mode: TargetMode = TargetMode.SINGLE
+
+## ── 統一目標驗證（子類不須 override）───────────────────────────────
+## 判斷「center_pos 是否可被點選作為目標」
+## AREA_3X3 模式下 center 本身不做限制（任意格皆可選，範圍內格子才過濾）
+func is_valid_target(board_pos: Vector2i, context: Dictionary) -> bool:
+	if target_faction == TargetFaction.NONE:
+		return true  # 不需要目標
+	var game = context.get("game")
+	if game == null:
+		return false
+
+	if target_mode == TargetMode.AREA_3X3:
+		# 選擇模式為 3x3 時，中心點本身不限制（任何格都可當中心）
+		return true
+
+	# SINGLE 模式：嚴格驗證 board_pos
+	return _cell_matches(board_pos, game, context.get("caster_side"))
+
+## ── 取得效果作用的實際格子列表 ──────────────────────────────────────
+## 由 play_strategy_card 在 execute() 前呼叫，結果注入 context["affected_positions"]
+func get_affected_cells(center: Vector2i, context: Dictionary) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	if target_faction == TargetFaction.NONE:
+		return result
+	var game = context.get("game")
+	if game == null:
+		return result
+	var side = context.get("caster_side")
+
+	if target_mode == TargetMode.SINGLE:
+		if _cell_matches(center, game, side):
+			result.append(center)
+	elif target_mode == TargetMode.AREA_3X3:
+		for dx in range(-1, 2):
+			for dy in range(-1, 2):
+				var p = Vector2i(center.x + dx, center.y + dy)
+				if not game.board.is_out_of_bounds(p):
+					if _cell_matches(p, game, side):
+						result.append(p)
+	return result
+
+## ── 實際執行效果（子類 override）───────────────────────────────────
+## context 包含：
+##   "game": XiangqiGame
+##   "caster_side": int（Side）
+##   "target_pos": Vector2i（中心格、或 NONE 時為 Vector2i(-1,-1)）
+##   "affected_positions": Array[Vector2i]（實際作用格列表）
 func execute(_context: Dictionary) -> void:
 	pass
+
+## ── 私有：判斷單格是否符合 L1+L2 條件 ──────────────────────────────
+func _cell_matches(pos: Vector2i, game, caster_side: int) -> bool:
+	var piece = game.board.get_piece(pos)
+	var enemy_side = XiangqiPiece.Side.BLACK if caster_side == XiangqiPiece.Side.RED else XiangqiPiece.Side.RED
+
+	# 先確認格子陣營符合 L1
+	if piece == null:
+		# 空格
+		if target_faction != TargetFaction.ANY and target_faction != TargetFaction.SELF and target_faction != TargetFaction.ENEMY:
+			return false  # NONE 不通（NONE 已在前面攔截）
+		# 空格只在 EMPTY bit 有設時合法
+		return (target_piece_mask & PIECE_EMPTY) != 0
+	else:
+		# 有棋子：先驗 L1 陣營
+		match target_faction:
+			TargetFaction.SELF:
+				if piece.side != caster_side:
+					return false
+			TargetFaction.ENEMY:
+				if piece.side != enemy_side:
+					return false
+			TargetFaction.ANY:
+				pass  # 不限
+			_:
+				return false
+
+		# 再驗 L2 棋子種類
+		return _piece_type_matches(piece.type)
+
+func _piece_type_matches(piece_type: int) -> bool:
+	var bit := 0
+	match piece_type:
+		XiangqiPiece.PieceType.GENERAL:   bit = PIECE_GENERAL
+		XiangqiPiece.PieceType.ADVISOR:   bit = PIECE_ADVISOR
+		XiangqiPiece.PieceType.ELEPHANT:  bit = PIECE_ELEPHANT
+		XiangqiPiece.PieceType.HORSE:     bit = PIECE_HORSE
+		XiangqiPiece.PieceType.CHARIOT:   bit = PIECE_CHARIOT
+		XiangqiPiece.PieceType.CANNON:    bit = PIECE_CANNON
+		XiangqiPiece.PieceType.SOLDIER:   bit = PIECE_SOLDIER
+		_: return false
+	return (target_piece_mask & bit) != 0

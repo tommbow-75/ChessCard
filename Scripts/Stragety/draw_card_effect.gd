@@ -4,7 +4,11 @@ extends StragetyEffect
 @export var draw_amount: int = 1
 
 func _init() -> void:
-	target_type = TargetType.NONE
+	target_faction = TargetFaction.NONE  # 直接發動，不需目標
 
-func execute(_context: Dictionary) -> void:
-	print("【謀略發動】抽 ", draw_amount, " 張卡！ (牌庫系統未實作)")
+func execute(context: Dictionary) -> void:
+	var game = context.get("game")
+	var side = context.get("caster_side")
+	var deck = game.deck_red if side == XiangqiPiece.Side.RED else game.deck_black
+	for i in range(draw_amount):
+		deck.draw_card()

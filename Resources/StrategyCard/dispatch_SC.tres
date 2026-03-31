@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="StrategyCardData" format=3 uid="uid://dxppaab0bcti3"]
+
+[ext_resource type="Script" uid="uid://cdqbrp6keu1b0" path="res://Scripts/strategy_card_data.gd" id="1_v0hj7"]
+[ext_resource type="Script" uid="uid://diu85jjqvlcte" path="res://Scripts/Stragety/stragety_effect.gd" id="2_ju7lx"]
+[ext_resource type="Script" uid="uid://ci50pedjcve77" path="res://Scripts/Stragety/move_rightnow_effect.gd" id="3_ju7lx"]
+
+[sub_resource type="Resource" id="Resource_kvjr6"]
+script = ExtResource("3_ju7lx")
+metadata/_custom_type_script = "uid://ci50pedjcve77"
+
+[resource]
+script = ExtResource("1_v0hj7")
+special_effects = Array[ExtResource("2_ju7lx")]([SubResource("Resource_kvjr6")])
+id = "dispatch_SC"
+card_name = "調度"
+sp_cost = 5
+effect_description = "移動所有己方soldier一格(無論前後左右)(不可吃子)"
+metadata/_custom_type_script = "uid://cdqbrp6keu1b0"

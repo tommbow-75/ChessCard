@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="StrategyCardData" format=3 uid="uid://cwaibfhmppa83"]
+
+[ext_resource type="Script" uid="uid://cdqbrp6keu1b0" path="res://Scripts/strategy_card_data.gd" id="1_dxu6j"]
+[ext_resource type="Script" uid="uid://diu85jjqvlcte" path="res://Scripts/Stragety/stragety_effect.gd" id="2_tf5yr"]
+[ext_resource type="Script" uid="uid://c3784odebjj2" path="res://Scripts/Stragety/turn_into_effect.gd" id="3_tf5yr"]
+
+[sub_resource type="Resource" id="Resource_8jxc2"]
+script = ExtResource("3_tf5yr")
+target_faction = 1
+target_piece_mask = 126
+metadata/_custom_type_script = "uid://c3784odebjj2"
+
+[resource]
+script = ExtResource("1_dxu6j")
+special_effects = Array[ExtResource("2_tf5yr")]([SubResource("Resource_8jxc2")])
+id = "horse_SC"
+card_name = "上馬"
+sp_cost = 2
+effect_description = "將1非general的棋子變更為horse"
+metadata/_custom_type_script = "uid://cdqbrp6keu1b0"

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="StrategyCardData" format=3 uid="uid://w3kqajpwwccy"]
+
+[ext_resource type="Script" uid="uid://cdqbrp6keu1b0" path="res://Scripts/strategy_card_data.gd" id="1_mkwk5"]
+[ext_resource type="Script" uid="uid://diu85jjqvlcte" path="res://Scripts/Stragety/stragety_effect.gd" id="2_nkw0n"]
+
+[resource]
+script = ExtResource("1_mkwk5")
+special_effects = Array[ExtResource("2_nkw0n")]([null])
+id = "morale_boost_SC"
+card_name = "鼓舞"
+effect_description = "回復3點士氣"
+metadata/_custom_type_script = "uid://cdqbrp6keu1b0"
