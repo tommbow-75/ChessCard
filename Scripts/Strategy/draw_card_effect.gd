@@ -4,7 +4,12 @@ extends StrategyEffectTiming
 @export var draw_amount: int = 1
 
 func _init() -> void:
-	target_mode = TargetMode.NONE  # 直接發動，不需選格
+	target_type = TargetType.new()
+	target_type.type = TargetType.Type.PLAYER
+	effect_target = EffectTarget.new()
+	piece_mask = TargetPieceMask.new()
+	target_mode = TargetMode.new()
+	target_mode.mode = TargetMode.Mode.NONE
 
 func execute(context: Dictionary) -> void:
 	var game = context.get("game")

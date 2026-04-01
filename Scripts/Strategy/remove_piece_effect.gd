@@ -2,15 +2,23 @@ class_name RemovePieceEffect
 extends StrategyEffectTiming
 
 ## 移除棋子效果
-## 可配置為：
-##  - 單體移除（shooting_SC）：faction=ENEMY，mask=不含將/相/仕，mode=SINGLE
-##  - 範圍移除（boulder_SC） ：faction=ANY，mask=不含GENERAL，mode=AREA_3X3
+## 預設：單體敵方、馬/車/砲/兵（shooting_SC）
+## boulder_SC 等以 .tres 覆寫 effect_target / piece_mask / target_mode
 
 func _init() -> void:
-	# 預設為單體敵方移除（shooting_SC 設定）
-	target_faction    = TargetFaction.ENEMY
-	target_piece_mask = PIECE_ALL & ~PIECE_GENERAL & ~PIECE_ADVISOR & ~PIECE_ELEPHANT
-	target_mode       = TargetMode.SINGLE
+	target_type = TargetType.new()
+	target_type.type = TargetType.Type.PIECE
+	effect_target = EffectTarget.new()
+	effect_target.target = EffectTarget.Target.ENEMY
+	piece_mask = TargetPieceMask.new()
+	piece_mask.mask = (
+			TargetPieceMask.HORSE
+			| TargetPieceMask.CHARIOT
+			| TargetPieceMask.CANNON
+			| TargetPieceMask.SOLDIER
+	)
+	target_mode = TargetMode.new()
+	target_mode.mode = TargetMode.Mode.SINGLE
 
 func execute(context: Dictionary) -> void:
 	var game = context.get("game")

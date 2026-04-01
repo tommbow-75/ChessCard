@@ -4,9 +4,14 @@ extends StrategyEffectTiming
 ## 暈眩：選敵方一子（非將帥），下回合不可移動
 
 func _init() -> void:
-	target_faction  = TargetFaction.ENEMY
-	target_piece_mask = PIECE_ALL & ~PIECE_GENERAL  # 除了將帥之外全部
-	target_mode     = TargetMode.SINGLE
+	target_type = TargetType.new()
+	target_type.type = TargetType.Type.PIECE
+	effect_target = EffectTarget.new()
+	effect_target.target = EffectTarget.Target.ENEMY
+	piece_mask = TargetPieceMask.new()
+	piece_mask.mask = TargetPieceMask.DEFAULT_MASK & ~TargetPieceMask.GENERAL
+	target_mode = TargetMode.new()
+	target_mode.mode = TargetMode.Mode.SINGLE
 
 func execute(context: Dictionary) -> void:
 	var game = context.get("game")
@@ -15,4 +20,4 @@ func execute(context: Dictionary) -> void:
 		var target = game.board.get_piece(pos)
 		if target != null:
 			target.is_stunned = true
-			target.stun_duration = 2  # 敵方與我方輪轉各一次 = 1 完整回合
+			target.stun_duration = 2

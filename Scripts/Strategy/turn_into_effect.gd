@@ -1,28 +1,34 @@
 class_name TurnIntoEffect
 extends StrategyEffectTiming
 
-## 變換棋子效果
-## 用途：
-##  - 上馬（horse_SC）    ：任何非將帥棋子 → HORSE
-##  - 機械化（mechanized）：任何 SOLDIER → CHARIOT
-##  - 策反（rebel_SC）   ：敵方非將帥 → 己方基礎棋子
+## 變換棋子效果（horse_SC / mechanized / rebel_SC 等）
+## transform_to：Inspector 單選 — 七種棋子其中一種，或「策反」僅改陣營
 
-enum TransformResult {
-	TO_HORSE,       # 目標變為馬
-	TO_CHARIOT,     # 目標變為車
-	TO_ALLY,        # 目標陣營改為發動方（策反）
+enum TransformTo {
+	GENERAL = XiangqiPiece.PieceType.GENERAL,
+	ADVISOR = XiangqiPiece.PieceType.ADVISOR,
+	ELEPHANT = XiangqiPiece.PieceType.ELEPHANT,
+	HORSE = XiangqiPiece.PieceType.HORSE,
+	CHARIOT = XiangqiPiece.PieceType.CHARIOT,
+	CANNON = XiangqiPiece.PieceType.CANNON,
+	SOLDIER = XiangqiPiece.PieceType.SOLDIER,
+	DEFECT_TO_ALLY,
 }
 
-@export var transform_result: TransformResult = TransformResult.TO_HORSE
+@export var transform_to: TransformTo = TransformTo.HORSE
 
 func _init() -> void:
-	# 預設為上馬（horse_SC）
-	target_faction    = TargetFaction.ANY
-	target_piece_mask = PIECE_ALL & ~PIECE_GENERAL
-	target_mode       = TargetMode.SINGLE
+	target_type = TargetType.new()
+	target_type.type = TargetType.Type.PIECE
+	effect_target = EffectTarget.new()
+	effect_target.target = EffectTarget.Target.ANY
+	piece_mask = TargetPieceMask.new()
+	piece_mask.mask = TargetPieceMask.DEFAULT_MASK & ~TargetPieceMask.GENERAL
+	target_mode = TargetMode.new()
+	target_mode.mode = TargetMode.Mode.SINGLE
 
 func execute(context: Dictionary) -> void:
-	var game        = context.get("game")
+	var game = context.get("game")
 	var caster_side = context.get("caster_side")
 	var affected: Array = context.get("affected_positions", [])
 
@@ -30,11 +36,8 @@ func execute(context: Dictionary) -> void:
 		var target = game.board.get_piece(pos)
 		if target == null:
 			continue
-		match transform_result:
-			TransformResult.TO_HORSE:
-				target.type = XiangqiPiece.PieceType.HORSE
-			TransformResult.TO_CHARIOT:
-				target.type = XiangqiPiece.PieceType.CHARIOT
-			TransformResult.TO_ALLY:
-				target.side = caster_side
-				target.special_effects.clear()
+		if transform_to == TransformTo.DEFECT_TO_ALLY:
+			target.side = caster_side
+			target.special_effects.clear()
+		else:
+			target.type = transform_to as int

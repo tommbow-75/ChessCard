@@ -27,10 +27,10 @@ script = ExtResource("3_hud")
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -300.0
+offset_left = -320.0
 offset_top = 20.0
 offset_right = -20.0
-offset_bottom = 360.0
+offset_bottom = 410.0
 
 [node name="VBox" type="VBoxContainer" parent="HUD/Panel" unique_id=1964997301]
 layout_mode = 2
@@ -38,41 +38,52 @@ layout_mode = 2
 [node name="TurnLabel" type="Label" parent="HUD/Panel/VBox" unique_id=452478197]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "ğŸ”´ ç´…æ–¹ çš„å›åˆ"
+text = "¬õ¤è¦^¦X"
 horizontal_alignment = 1
 
 [node name="RedMoraleLabel" type="Label" parent="HUD/Panel/VBox" unique_id=2010423973]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "ğŸ”´ å£«æ°£: 100 / 100"
+text = "¬õ¤è¤h®ğ: 100 / 100"
 
 [node name="RedSPLabel" type="Label" parent="HUD/Panel/VBox" unique_id=856003035]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "    SP: 0"
+text = "¬õ¤è SP: 0"
 
 [node name="SepLabel" type="Label" parent="HUD/Panel/VBox" unique_id=1242884490]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€"
+text = "----------------"
 
 [node name="BlackMoraleLabel" type="Label" parent="HUD/Panel/VBox" unique_id=380989574]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "âš« å£«æ°£: 100 / 100"
+text = "¶Â¤è¤h®ğ: 100 / 100"
 
 [node name="BlackSPLabel" type="Label" parent="HUD/Panel/VBox" unique_id=1262889667]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "    SP: 0"
+text = "¶Â¤è SP: 0"
+
+[node name="ActionLabel" type="Label" parent="HUD/Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "¥»¦^¦X°Ê§@ 0/2  |  ¥XµP 0  |  ¨«¤l 0"
+horizontal_alignment = 1
 
 [node name="StatusLabel" type="Label" parent="HUD/Panel/VBox" unique_id=789256542]
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
-text = "è«‹é¸æ“‡æ£‹å­ç§»å‹•"
+text = "«ö¤Uµ²§ô¦^¦X¤~·|´«Ãä"
 horizontal_alignment = 1
+
+[node name="EndTurnButton" type="Button" parent="HUD/Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "µ²§ô¦^¦X"
 
 [node name="RestartButton" type="Button" parent="HUD/Panel/VBox" unique_id=1409389977]
 layout_mode = 2
 theme_override_font_sizes/font_size = 17
-text = "ğŸ”„ é‡æ–°é–‹å§‹"
+text = "­«·s¶}©l"

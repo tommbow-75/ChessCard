@@ -4,12 +4,16 @@ extends StrategyEffectTiming
 @export var damage_amount: int = 5
 
 func _init() -> void:
-	target_mode = TargetMode.NONE  # 直接發動，不需選格
+	target_type = TargetType.new()
+	target_type.type = TargetType.Type.PLAYER
+	effect_target = EffectTarget.new()
+	piece_mask = TargetPieceMask.new()
+	target_mode = TargetMode.new()
+	target_mode.mode = TargetMode.Mode.NONE
 
 func execute(context: Dictionary) -> void:
 	var game = context.get("game")
 	var side = context.get("caster_side")
-	# 扣除對方士氣
 	if side == XiangqiPiece.Side.RED:
 		game.morale_black = max(0, game.morale_black - damage_amount)
 		if game.morale_black == 0:

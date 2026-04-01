@@ -1,13 +1,12 @@
-[gd_resource type="Resource" script_class="SummonCardData" format=3]
+[gd_resource type="Resource" script_class="SummonCardData" format=3 uid="uid://bhr00vbqan2gm"]
 
-[ext_resource type="Script" path="res://Scripts/summon_card_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://qikwe53aggen" path="res://Scripts/summon_card_data.gd" id="1_limxt"]
 
 [resource]
-script = ExtResource("1")
-summon_type = 0
+script = ExtResource("1_limxt")
 morale_value = 30
 id = "basic_general"
-card_name = "基礎帥"
+card_name = "大將"
 category = 0
 sp_cost = 5
-effect_description = "無"
+metadata/_custom_type_script = "uid://qikwe53aggen"
