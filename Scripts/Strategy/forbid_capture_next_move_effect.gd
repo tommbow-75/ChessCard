@@ -15,7 +15,7 @@ func _init() -> void:
 	effect_target = EffectTarget.new()
 	piece_mask = TargetPieceMask.new()
 	target_mode = TargetMode.new()
-	target_mode.mode = TargetMode.Mode.NONE
+	#target_mode.mode = TargetMode.Mode.NONE
 
 func applies_to_target(piece_type: int) -> bool:
 	return forbidden_target == FORBID_ALL_TARGETS or forbidden_target == piece_type

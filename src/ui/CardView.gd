@@ -99,34 +99,50 @@ func _draw_strategy() -> void:
 	# ── 頂欄：Name + SP 圓 ─────────────────────────────────────────
 	var header_rect = Rect2(3, 3, CARD_W - 6, HEADER_H)
 	draw_rect(header_rect, C_HEADER_BG)
+	draw_rect(header_rect, C_BORDER, false, 1.0)
+
 	# 卡名（置中）
-	_draw_centered_text(font, _strat_name, Vector2(CARD_W * 0.5 - 14, 3 + HEADER_H * 0.5), 18, C_TEXT)
+	_draw_centered_text(font, _strat_name, Vector2(CARD_W * 0.5 - 10, 3 + HEADER_H * 0.5), 19, C_TEXT)
 
 	# SP 圓（右上角）
 	var sp_cx = CARD_W - 24.0
 	var sp_cy = 3 + HEADER_H * 0.5
-	draw_circle(Vector2(sp_cx, sp_cy), 17, C_SP_BG)
-	draw_circle(Vector2(sp_cx, sp_cy), 14, C_CARD_BG)
-	_draw_centered_text(font, str(_strat_sp_cost), Vector2(sp_cx, sp_cy), 16, C_TEXT)
+	draw_circle(Vector2(sp_cx, sp_cy), 18, C_BORDER)
+	draw_circle(Vector2(sp_cx, sp_cy), 16, C_SP_BG)
+	_draw_centered_text(font, str(_strat_sp_cost), Vector2(sp_cx, sp_cy), 18, C_TEXT)
 
 	# ── 大圖區（紅邊框）─────────────────────────────────────────────
 	var img_y = 3 + HEADER_H + 3
 	var img_rect = Rect2(3, img_y, CARD_W - 6, IMAGE_H)
-	draw_rect(img_rect, C_CARD_BG)
-	draw_rect(img_rect, C_RED_BORDER, false, 2)
+	
+	# 繪製裝飾性內框
+	draw_rect(img_rect, Color(0.92, 0.92, 0.88))
+	draw_rect(img_rect, C_RED_BORDER, false, 2.5)
+	draw_rect(img_rect.grow(-4), C_RED_BORDER, false, 0.5) # 裝飾細線
 
-	# 圖區底部：黑框 stragety 標籤（覆蓋在邊界）
-	var label_y = img_y + IMAGE_H - 30
-	var strat_rect = Rect2(CARD_W * 0.5 - 38, label_y, 76, 24)
-	draw_rect(strat_rect, C_CARD_BG)
-	draw_rect(strat_rect, C_BORDER, false, 2)
-	_draw_centered_text(font, "stragety", Vector2(CARD_W * 0.5, label_y + 12), 14, C_TEXT)
+	# 繪製一個抽象的策略圖示 (卷軸感)
+	var icon_center = img_rect.get_center()
+	var sw := 40.0
+	var sh := 50.0
+	var scroll_rect = Rect2(icon_center.x - sw * 0.5, icon_center.y - sh * 0.5, sw, sh)
+	draw_rect(scroll_rect, Color.WHITE)
+	draw_rect(scroll_rect, Color(0.8, 0.6, 0.1), false, 2)
+	for i in range(3):
+		var line_y = scroll_rect.position.y + 12 + i * 10
+		draw_line(Vector2(scroll_rect.position.x + 8, line_y), Vector2(scroll_rect.end.x - 8, line_y), Color(0.8, 0.6, 0.1), 1.5)
+
+	# 圖區底部：黑框 STRATEGY 標籤
+	var label_y = img_y + IMAGE_H - 12
+	var strat_rect = Rect2(CARD_W * 0.5 - 45, label_y, 90, 24)
+	draw_rect(strat_rect, C_TEXT)
+	_draw_centered_text(font, "STRATEGY", Vector2(CARD_W * 0.5, label_y + 12), 12, Color.WHITE)
 
 	# ── 效果區 ──────────────────────────────────────────────────────
-	var eff_y = img_y + IMAGE_H + 4
-	draw_rect(Rect2(3, eff_y, CARD_W - 6, EFFECT_H), C_CARD_BG)
-	draw_rect(Rect2(3, eff_y, CARD_W - 6, EFFECT_H), C_RED_BORDER, false, 2)
-	_draw_wrapped_text(font, "Effect: " + _strat_effect_text, Rect2(8, eff_y + 6, CARD_W - 16, EFFECT_H - 12), 13, C_TEXT)
+	var eff_y = img_y + IMAGE_H + 8
+	var eff_rect = Rect2(3, eff_y, CARD_W - 6, EFFECT_H)
+	draw_rect(eff_rect, C_CARD_BG)
+	draw_rect(eff_rect, C_RED_BORDER, false, 2)
+	_draw_wrapped_text(font, _strat_effect_text, Rect2(10, eff_y + 8, CARD_W - 20, EFFECT_H - 16), 14, C_TEXT)
 
 	# ── 底欄（灰色）─────────────────────────────────────────────────
 	var footer_y = eff_y + EFFECT_H + 3

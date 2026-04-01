@@ -3,6 +3,8 @@ extends Resource
 
 @export var target_type: TargetType
 @export var effect_target: EffectTarget
+
+@export_group("Mask&Mode")
 @export var piece_mask: TargetPieceMask
 @export var target_mode: TargetMode
 

@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="StrategyCardData" format=3 uid="uid://b5pe8qdf26p1b"]
+
+[ext_resource type="Script" uid="uid://cdqbrp6keu1b0" path="res://Scripts/strategy_card_data.gd" id="1_nl25c"]
+[ext_resource type="Script" uid="uid://b0hqg3sgsmg7t" path="res://Scripts/Strategy/strategy_effect_timing.gd" id="2_0w0jl"]
+[ext_resource type="Script" uid="uid://diarb3eek7oye" path="res://Scripts/CardEffectLayers/effect_target.gd" id="3_kfjak"]
+[ext_resource type="Script" uid="uid://cgwno7tuuf7e3" path="res://Scripts/CardEffectLayers/target_piece_mask.gd" id="4_gwycb"]
+[ext_resource type="Script" uid="uid://c3784odebjj2" path="res://Scripts/Strategy/turn_into_effect.gd" id="5_ajajf"]
+[ext_resource type="Script" uid="uid://b64yhx18ab3as" path="res://Scripts/CardEffectLayers/target_mode.gd" id="6_i3a5m"]
+[ext_resource type="Script" uid="uid://b6q5d6ta5s07n" path="res://Scripts/CardEffectLayers/target_type.gd" id="7_jsgqy"]
+
+[sub_resource type="Resource" id="Resource_6d444"]
+script = ExtResource("3_kfjak")
+target = 0
+metadata/_custom_type_script = "uid://diarb3eek7oye"
+
+[sub_resource type="Resource" id="Resource_72suf"]
+script = ExtResource("4_gwycb")
+mask = 64
+metadata/_custom_type_script = "uid://cgwno7tuuf7e3"
+
+[sub_resource type="Resource" id="Resource_nexx8"]
+script = ExtResource("6_i3a5m")
+metadata/_custom_type_script = "uid://b64yhx18ab3as"
+
+[sub_resource type="Resource" id="Resource_3rxbe"]
+script = ExtResource("7_jsgqy")
+metadata/_custom_type_script = "uid://b6q5d6ta5s07n"
+
+[sub_resource type="Resource" id="Resource_p0mlm"]
+script = ExtResource("5_ajajf")
+transform_to = 4
+target_type = SubResource("Resource_3rxbe")
+effect_target = SubResource("Resource_6d444")
+piece_mask = SubResource("Resource_72suf")
+target_mode = SubResource("Resource_nexx8")
+metadata/_custom_type_script = "uid://c3784odebjj2"
+
+[resource]
+script = ExtResource("1_nl25c")
+special_effects = Array[ExtResource("2_0w0jl")]([SubResource("Resource_p0mlm")])
+id = "mechanized_infantry_sc"
+card_name = "機械化"
+sp_cost = 3
+effect_description = "將1soldier變更為chariot"
+metadata/_custom_type_script = "uid://cdqbrp6keu1b0"

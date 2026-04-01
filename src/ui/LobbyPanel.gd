@@ -52,26 +52,28 @@ func _load_card_pool() -> void:
 		"res://Resources/StrategyCard",
 	]
 	for dir_path in dirs:
-		var dir = DirAccess.open(dir_path)
-		if dir == null:
-			continue
-		dir.list_dir_begin()
-		var sub = dir.get_next()
-		while sub != "":
-			if dir.current_is_dir() and not sub.begins_with("."):
-				var sub_dir = DirAccess.open(dir_path + "/" + sub)
-				if sub_dir:
-					sub_dir.list_dir_begin()
-					var file = sub_dir.get_next()
-					while file != "":
-						if file.ends_with(".tres"):
-							var res = load(dir_path + "/" + sub + "/" + file)
-							if res is CardData and res.id != "":
-								_card_pool.append(res)
-						file = sub_dir.get_next()
-					sub_dir.list_dir_end()
-			sub = dir.get_next()
-		dir.list_dir_end()
+		_scan_dir_recursive(dir_path)
+
+func _scan_dir_recursive(path: String) -> void:
+	var dir = DirAccess.open(path)
+	if dir == null:
+		return
+	
+	dir.list_dir_begin()
+	var item = dir.get_next()
+	while item != "":
+		var full_path = path + "/" + item
+		if dir.current_is_dir():
+			if not item.begins_with("."):
+				_scan_dir_recursive(full_path)
+		else:
+			if item.ends_with(".tres"):
+				var res = load(full_path)
+				if res is CardData and res.id != "":
+					_card_pool.append(res)
+		
+		item = dir.get_next()
+	dir.list_dir_end()
 
 # ── UI 建立 ─────────────────────────────────────────────────────────
 func _build_ui() -> void:

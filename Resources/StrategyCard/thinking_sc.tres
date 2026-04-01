@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="StrategyCardData" format=3 uid="uid://iaxoqcrgkxl0"]
+
+[ext_resource type="Script" uid="uid://cdqbrp6keu1b0" path="res://Scripts/strategy_card_data.gd" id="1_bjuqr"]
+[ext_resource type="Script" uid="uid://b0hqg3sgsmg7t" path="res://Scripts/Strategy/strategy_effect_timing.gd" id="2_smntx"]
+[ext_resource type="Script" uid="uid://diarb3eek7oye" path="res://Scripts/CardEffectLayers/effect_target.gd" id="3_4apev"]
+[ext_resource type="Script" uid="uid://dfsl45lt4no5j" path="res://Scripts/Strategy/draw_card_effect.gd" id="4_yh5sl"]
+[ext_resource type="Script" uid="uid://b6q5d6ta5s07n" path="res://Scripts/CardEffectLayers/target_type.gd" id="5_6mxlc"]
+
+[sub_resource type="Resource" id="Resource_x60j4"]
+script = ExtResource("3_4apev")
+target = 0
+metadata/_custom_type_script = "uid://diarb3eek7oye"
+
+[sub_resource type="Resource" id="Resource_51x6w"]
+script = ExtResource("5_6mxlc")
+type = 0
+metadata/_custom_type_script = "uid://b6q5d6ta5s07n"
+
+[sub_resource type="Resource" id="Resource_nxg6u"]
+script = ExtResource("4_yh5sl")
+draw_amount = 2
+target_type = SubResource("Resource_51x6w")
+effect_target = SubResource("Resource_x60j4")
+metadata/_custom_type_script = "uid://dfsl45lt4no5j"
+
+[resource]
+script = ExtResource("1_bjuqr")
+special_effects = Array[ExtResource("2_smntx")]([SubResource("Resource_nxg6u")])
+id = "thinking_sc"
+card_name = "思考"
+effect_description = "抽2張卡"
+metadata/_custom_type_script = "uid://cdqbrp6keu1b0"
