@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SummonCardData" format=3 uid="uid://dweqw5qu38jlf"]
+
+[ext_resource type="Script" uid="uid://qikwe53aggen" path="res://Scripts/summon_card_data.gd" id="1_esjms"]
+[ext_resource type="Script" uid="uid://cwff52vwqctok" path="res://Scripts/Effects/extra_move_effect.gd" id="2_w6602"]
+
+[sub_resource type="Resource" id="Resource_vg3fn"]
+script = ExtResource("2_w6602")
+metadata/_custom_type_script = "uid://cwff52vwqctok"
+
+[resource]
+script = ExtResource("1_esjms")
+summon_type = 4
+morale_value = 15
+special_effects = Array[Resource]([SubResource("Resource_vg3fn")])
+id = "flame_chariot"
+card_name = "火焰車"
+category = 0
+sp_cost = 3
+metadata/_custom_type_script = "uid://qikwe53aggen"

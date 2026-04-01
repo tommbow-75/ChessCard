@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_limxt")
+summon_type = 0
 morale_value = 30
 id = "basic_general"
 card_name = "大將"

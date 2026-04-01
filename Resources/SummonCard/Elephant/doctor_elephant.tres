@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="SummonCardData" format=3 uid="uid://bhymc1e7mkjew"]
+
+[ext_resource type="Script" uid="uid://qikwe53aggen" path="res://Scripts/summon_card_data.gd" id="1_wxhiu"]
+[ext_resource type="Script" uid="uid://co5s0n4e4j4a2" path="res://Scripts/summon_effect_timing.gd" id="2_qwjwm"]
+[ext_resource type="Script" uid="uid://b6q5d6ta5s07n" path="res://Scripts/CardEffectLayers/target_type.gd" id="3_43hu8"]
+[ext_resource type="Script" uid="uid://diarb3eek7oye" path="res://Scripts/CardEffectLayers/effect_target.gd" id="4_6hthg"]
+[ext_resource type="Script" uid="uid://b7clwxopqpwm0" path="res://Scripts/Effects/heal_morale_effect.gd" id="5_85knv"]
+
+[sub_resource type="Resource" id="Resource_w73er"]
+script = ExtResource("2_qwjwm")
+metadata/_custom_type_script = "uid://co5s0n4e4j4a2"
+
+[sub_resource type="Resource" id="Resource_njp16"]
+script = ExtResource("3_43hu8")
+type = 0
+metadata/_custom_type_script = "uid://b6q5d6ta5s07n"
+
+[sub_resource type="Resource" id="Resource_5um5g"]
+script = ExtResource("4_6hthg")
+target = 0
+metadata/_custom_type_script = "uid://diarb3eek7oye"
+
+[sub_resource type="Resource" id="Resource_4wc72"]
+script = ExtResource("5_85knv")
+metadata/_custom_type_script = "uid://b7clwxopqpwm0"
+
+[resource]
+script = ExtResource("1_wxhiu")
+summon_type = 2
+morale_value = 10
+special_effects = Array[Resource]([SubResource("Resource_w73er"), SubResource("Resource_njp16"), SubResource("Resource_5um5g"), SubResource("Resource_4wc72")])
+id = "doctor_elephant"
+card_name = "軍醫"
+category = 0
+sp_cost = 3
+effect_description = "召喚-回復5點士氣"
+metadata/_custom_type_script = "uid://qikwe53aggen"

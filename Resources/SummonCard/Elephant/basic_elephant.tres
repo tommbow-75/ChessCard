@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="SummonCardData" format=3 uid="uid://d2mxdw17lt816"]
+
+[ext_resource type="Script" uid="uid://qikwe53aggen" path="res://Scripts/summon_card_data.gd" id="1_8ick4"]
+
+[resource]
+script = ExtResource("1_8ick4")
+summon_type = 2
+morale_value = 10
+id = "basic_elephtant"
+card_name = "宰相"
+category = 0
+metadata/_custom_type_script = "uid://qikwe53aggen"

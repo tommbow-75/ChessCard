@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="StrategyCardData" format=3 uid="uid://cv31dq312g7nk"]
+
+[ext_resource type="Script" uid="uid://cdqbrp6keu1b0" path="res://Scripts/strategy_card_data.gd" id="1_rrlju"]
+[ext_resource type="Script" uid="uid://b0hqg3sgsmg7t" path="res://Scripts/Strategy/strategy_effect_timing.gd" id="2_s4jda"]
+
+[resource]
+script = ExtResource("1_rrlju")
+metadata/_custom_type_script = "uid://cdqbrp6keu1b0"

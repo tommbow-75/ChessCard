@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="SummonCardData" format=3 uid="uid://b1bvf0j7nfmor"]
+
+[ext_resource type="Script" uid="uid://qikwe53aggen" path="res://Scripts/summon_card_data.gd" id="1_32jl5"]
+[ext_resource type="Script" uid="uid://co5s0n4e4j4a2" path="res://Scripts/summon_effect_timing.gd" id="2_tugq1"]
+[ext_resource type="Script" uid="uid://b6q5d6ta5s07n" path="res://Scripts/CardEffectLayers/target_type.gd" id="3_jrje3"]
+[ext_resource type="Script" uid="uid://diarb3eek7oye" path="res://Scripts/CardEffectLayers/effect_target.gd" id="4_m2u6x"]
+[ext_resource type="Script" uid="uid://cgwno7tuuf7e3" path="res://Scripts/CardEffectLayers/target_piece_mask.gd" id="5_mrenr"]
+[ext_resource type="Script" uid="uid://b64yhx18ab3as" path="res://Scripts/CardEffectLayers/target_mode.gd" id="6_clgnr"]
+[ext_resource type="Script" uid="uid://6ovddujfrckj" path="res://Scripts/Effects/cannot_eat_effect.gd" id="7_l0opv"]
+
+[sub_resource type="Resource" id="Resource_dxpnt"]
+script = ExtResource("2_tugq1")
+timing = 1
+metadata/_custom_type_script = "uid://co5s0n4e4j4a2"
+
+[sub_resource type="Resource" id="Resource_jrlmg"]
+script = ExtResource("3_jrje3")
+metadata/_custom_type_script = "uid://b6q5d6ta5s07n"
+
+[sub_resource type="Resource" id="Resource_fbqt8"]
+script = ExtResource("4_m2u6x")
+metadata/_custom_type_script = "uid://diarb3eek7oye"
+
+[sub_resource type="Resource" id="Resource_i7ghc"]
+script = ExtResource("5_mrenr")
+mask = 1
+metadata/_custom_type_script = "uid://cgwno7tuuf7e3"
+
+[sub_resource type="Resource" id="Resource_rf66j"]
+script = ExtResource("6_clgnr")
+mode = 0
+metadata/_custom_type_script = "uid://b64yhx18ab3as"
+
+[sub_resource type="Resource" id="Resource_hajsi"]
+script = ExtResource("7_l0opv")
+metadata/_custom_type_script = "uid://6ovddujfrckj"
+
+[resource]
+script = ExtResource("1_32jl5")
+summon_type = 5
+special_effects = Array[Resource]([SubResource("Resource_dxpnt"), SubResource("Resource_jrlmg"), SubResource("Resource_fbqt8"), SubResource("Resource_i7ghc"), SubResource("Resource_rf66j"), SubResource("Resource_hajsi")])
+id = "trash_connon"
+card_name = "垃圾炮"
+category = 0
+sp_cost = 2
+effect_description = "天生-不可以吃將/帥"
+metadata/_custom_type_script = "uid://qikwe53aggen"

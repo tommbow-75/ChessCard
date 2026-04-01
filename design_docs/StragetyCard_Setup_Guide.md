@@ -1,6 +1,6 @@
 # 謀略卡 (Strategy Card) 建立指南
 
-本指南說明如何透過 Godot Inspector 建立與配置全新的謀略卡資源（`StrategyCardData`）。
+本指南說明如何透過 Godot Inspector 建立與配置全新的謀略卡資源（`StrategyCardData`），並結合**六層式效果積木架構**。
 
 ## 1. 建立資源文件
 1. 在 Godot **FileSystem** 面板中，選擇資料夾（例如 `Resources/Cards/Strategy/`）。
@@ -11,50 +11,57 @@
 ## 2. 基礎屬性配置 (CardData)
 當您選中該 `.tres` 檔案後，在 **Inspector** 中會看到以下欄位：
 
-*   **Id**: 唯一的內部識別碼 (例如 `SC_001`, `shooting_SC`)。
-*   **Card Name**: 卡牌在遊戲中顯示的名稱 (例如 `能量射擊`)。
-*   **Category**: 預設設為 `STRATEGY`。
+*   **Id**: 唯一的內部識別碼 (例如 `SC_001`)。
+*   **Card Name**: 卡牌顯示名稱 (例如 `能量射擊`)。
+*   **Category**: 預設為 `STRATEGY`。
 *   **Sp Cost**: 發動此卡所需的 SP 點數 (例如 `2`)。
-*   **Effect Description**: 在卡牌介面上顯示的效果描述文字。
+*   **Effect Description**: 卡牌介面上顯示的效果描述文字。
 
-## 3. 設定特殊效果 (Special Effects)
-謀略卡的實際功能是由 `Special Effects` 陣列定義的：
+## 3. 配置六層式效果積木 (Special Effects)
+謀略卡的功能是透過 `Special Effects` 陣列中的 `StrategyEffectTiming` 資源來實踐。每個效果積木都遵循以下六層定義：
 
-1. 點擊 **Special Effects** 右側的 **Add Element**。
-2. 點擊新產生的欄位 **[empty]**。
-3. 選擇 **New [對應效果類別]** (例如 `New RemovePieceEffect`)。
-   *   *註：所有效果腳本位於 `Scripts/Stragety/` 下。*
+### Level 1: 觸發時機 (`StrategyEffectTiming`)
+點擊 **Add Element** 並建立一個 `StrategyEffectTiming` 資源，設定其觸發模式：
+- **IMMEDIATE**: 發動卡牌時立刻觸發（通常用於指定玩家的數值，如：抽牌）。
+- **TARGETED**: 發動卡牌後，需先由玩家在棋盤上選取目標才觸發。
 
-### 常見效果類別及其參數：
+### Level 2: 目標類型 (`Target Type`)
+決定玩家要點選什麼？
+- **Player**: 指定玩家（通常搭配 IMMEDIATE，如回復士氣）。
+- **Piece**: 指定棋盤上的棋子。
+- **Cell**: 指定棋盤上的空格或座標點（如放置巨石）。
 
-| 效果類別 | 功能說明 | 關鍵 Inspector 參數 |
-| :--- | :--- | :--- |
-| **HealMoraleEffect** | 回復我方士氣 | `Heal Amount` (數值) |
-| **DiscountMoraleEffect** | 扣除敵方士氣 | `Damage Amount` (數值) |
-| **StunEffect** | 暈眩目標棋子 | (無額外參數) |
-| **RemovePieceEffect** | 移除/摧毀棋子 | `Target Type` (決定範圍或單體) |
-| **DrawCardEffect** | 抽牌 | `Draw Amount` (張數) |
-| **TurnIntoEffect** | 變換子力/策反 | `Behavior` (下拉選單選擇變換規則) |
-| **MoveRightnowEffect** | 立即移動己方棋子 | (通常用於「調度」) |
+### Level 3: 適用方 (`Effect Target`)
+決定效果對誰生效？
+- **Self**: 僅對己方生效。
+- **Enemy**: 僅對敵方生效。
+- **Any**: 對雙方皆可生效。
 
-## 4. 目標選取類型 (Target Type) 設定
-每個效果（Effect）中都有 `Target Type` 選項，決定發動卡牌時 UI 應如何引導玩家：
+### Level 4: 棋子過濾器 (`Target Piece Mask`)
+如果目標是棋子，可複選要影響的兵種。若不勾選則代表全選（預設）。
+- 勾選 `Soldier`, `Horse`... 等，可精確限制效果僅能施放於特定棋子。
 
-*   `NONE`: 不需要點選目標，發動即生效（例如：抽牌、補士氣）。
-*   `SINGLE_ENEMY_NON_GENERAL`: 玩家必須點選一個**敵方**且**非將帥**的棋子才可以發動。
-*   `AREA_3X3_ANY`: 點選地圖上任何一格，影響該點周圍 3x3 範圍（例如：巨石）。
-*   `ANY_NON_GENERAL`: 點選任何一個非將帥棋子（不分敵我）。
-*   `ANY_SOLDIER`: 點選任何一個兵或卒。
+### Level 5: 作用範圍 (`Target Mode`)
+決定效果影響的範圍大小：
+- **Single**: 僅影響點選的那一格。
+- **Area 3x3**: 影響點選位置及周圍 1 格（共 9 格）。
+- **None**: 無範圍（通常用於 Player 類型）。
 
-## 5. 實戰範例：建立「策反 (Rebel)」
-1. 建立 `StrategyCardData` 資源。
-2. **Card Name**: `策反`
-3. **SP Cost**: `5`
-4. **Special Effects**:
-    *   新增 `TurnIntoEffect`。
-    *   將 `Behavior` 設為 `ENEMY_NON_GENERAL_TO_ALLY`。
-    *   將 `Target Type` 設為 `SINGLE_ENEMY_NON_GENERAL`。
+### Level 6: 具體邏輯效果 (`Logic Effect`)
+這是最終執行的功能，請在對應的欄位掛載具體的 `.gd` 腳本（例如 `RemovePieceEffect`, `HealMoraleEffect`）。
+
+---
+
+## 4. 實戰範例：建立「射日弓」
+1. **Card Name**: `射日弓`
+2. **Special Effects**: 新增一個 `StrategyEffectTiming`：
+   - **Level 1**: `TARGETED`
+   - **Level 2 (TargetType)**: `Piece`
+   - **Level 3 (EffectTarget)**: `Enemy`
+   - **Level 4 (PieceMask)**: 勾選除了 `General` 以外的所有棋子。
+   - **Level 5 (TargetMode)**: `Single`
+   - **Level 6 (LogicEffect)**: 掛載 `RemovePieceEffect` 並設定數值。
 
 ---
 > [!TIP]
-> 如果想要設計多重效果（例如「抽一張牌並回復 3 點士氣」），只需在 `Special Effects` 陣列中同時加入 `DrawCardEffect` 與 `HealMoraleEffect` 即可！
+> 這種模組化設計讓您可以輕鬆創造複雜卡牌。例如要製作「全場震懾」，只需將 `Target Mode` 設為 `Area 3x3` 或擴充全場邏輯，並掛載 `StunEffect` 即可！

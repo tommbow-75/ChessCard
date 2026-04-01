@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="SummonCardData" format=3 uid="uid://dy3jg2csawcp6"]
+
+[ext_resource type="Script" uid="uid://qikwe53aggen" path="res://Scripts/summon_card_data.gd" id="1_y285x"]
+
+[resource]
+script = ExtResource("1_y285x")
+summon_type = 5
+morale_value = 10
+id = "basic_connon"
+card_name = "火炮"
+category = 0
+sp_cost = 2
+metadata/_custom_type_script = "uid://qikwe53aggen"
