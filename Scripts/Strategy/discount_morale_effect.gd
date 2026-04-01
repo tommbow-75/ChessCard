@@ -7,9 +7,7 @@ func _init() -> void:
 	target_type = TargetType.new()
 	target_type.type = TargetType.Type.PLAYER
 	effect_target = EffectTarget.new()
-	piece_mask = TargetPieceMask.new()
-	target_mode = TargetMode.new()
-	target_mode.mode = TargetMode.Mode.NONE
+
 
 func execute(context: Dictionary) -> void:
 	var game = context.get("game")

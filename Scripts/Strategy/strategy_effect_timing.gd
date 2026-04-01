@@ -9,7 +9,7 @@ extends Resource
 func is_valid_target(board_pos: Vector2i, context: Dictionary) -> bool:
 	if target_type == null or target_type.type == TargetType.Type.PLAYER:
 		return false
-	if target_mode == null or target_mode.mode == TargetMode.Mode.NONE:
+	if target_mode == null:
 		return false
 
 	var game = context.get("game")
@@ -25,7 +25,7 @@ func get_affected_cells(center: Vector2i, context: Dictionary) -> Array[Vector2i
 	var result: Array[Vector2i] = []
 	if target_type == null or target_type.type == TargetType.Type.PLAYER:
 		return result
-	if target_mode == null or target_mode.mode == TargetMode.Mode.NONE:
+	if target_mode == null:
 		return result
 
 	var game = context.get("game")

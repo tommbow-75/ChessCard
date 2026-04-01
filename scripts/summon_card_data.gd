@@ -2,8 +2,8 @@ class_name SummonCardData
 extends CardData
 
 @export var summon_type: ChessPieceData.PieceType = ChessPieceData.PieceType.SOLDIER
-@export var morale_value: int = 5
-@export var special_effects: Array[Resource] = []
+@export var morale_value: int = 10
+@export var special_effects: Array[SummonEffectTiming] = []
 
 func _init() -> void:
 	category = CardCategory.SUMMON
