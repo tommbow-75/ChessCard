@@ -12,5 +12,5 @@ func _init() -> void:
 	timing = Timing.BORN
 
 ## 此效果由 XiangqiRuleVerifier 查詢，不透過 execute() 主動發動
-func execute(context: Dictionary) -> void:
+func execute(_context: Dictionary) -> void:
 	pass

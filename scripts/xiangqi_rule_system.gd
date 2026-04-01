@@ -86,7 +86,7 @@ func _is_valid_cannon_move(grid, from_pos: Vector2, to_pos: Vector2, dx: float, 
 		return count == 0
 
 # 馬: 走日字，判斷拐馬腳
-func _is_valid_horse_move(grid, from_pos: Vector2, to_pos: Vector2, dx: float, dy: float) -> bool:
+func _is_valid_horse_move(grid, from_pos: Vector2, _to_pos: Vector2, dx: float, dy: float) -> bool:
 	if abs(dx) == 1 and abs(dy) == 2:
 		var check_y = from_pos.y + sign(dy)
 		if grid.get_piece_at(Vector2(from_pos.x, check_y)) != null: # 拐馬腳 (直向)
@@ -116,7 +116,7 @@ func _is_valid_elephant_move(grid, from_pos: Vector2, to_pos: Vector2, dx: float
 	return true
 
 # 士/仕: 只能在九宮格內走斜線
-func _is_valid_advisor_move(from_pos: Vector2, to_pos: Vector2, dx: float, dy: float, camp: int) -> bool:
+func _is_valid_advisor_move(_from_pos: Vector2, to_pos: Vector2, dx: float, dy: float, camp: int) -> bool:
 	if abs(dx) != 1 or abs(dy) != 1:
 		return false
 	return _is_in_palace(to_pos, camp)

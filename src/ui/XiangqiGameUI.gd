@@ -36,6 +36,10 @@ func _ready() -> void:
 		hud.restart_requested.connect(restart_game)
 	if hud and hud.has_signal("end_turn_requested"):
 		hud.end_turn_requested.connect(_on_end_turn_requested)
+	
+	if card_hand_panel:
+		card_hand_panel.card_played.connect(_on_card_played)
+
 	_show_lobby()
 
 func _input(event: InputEvent) -> void:
@@ -60,12 +64,12 @@ func _input(event: InputEvent) -> void:
 								continue
 							hover_poses.append(Vector2i(grid.x + dx, grid.y + dy))
 
-				hint_overlay.strategy_hover_poses = hover_poses
+				hint_overlay.strategy_hover_poses.assign(hover_poses)
 				hint_overlay.queue_redraw()
 		else:
 			if hovered_pos != Vector2i(-1, -1):
 				hovered_pos = Vector2i(-1, -1)
-				hint_overlay.strategy_hover_poses.clear()
+				hint_overlay.set("strategy_hover_poses", [])
 				hint_overlay.queue_redraw()
 
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -182,11 +186,31 @@ func _rebuild_pieces() -> void:
 func refresh_hand() -> void:
 	if card_hand_panel == null:
 		return
-	var deck = game.deck_red if game.current_turn == XiangqiPiece.Side.RED else game.deck_black
+	var side = game.current_turn
+	var deck = game.deck_red if side == XiangqiPiece.Side.RED else game.deck_black
+	var sp   = game.sp_red if side == XiangqiPiece.Side.RED else game.sp_black
+	
 	var hand: Array = []
 	for c in deck.get_hand():
 		hand.append(c)
-	card_hand_panel.set_hand(hand)
+	card_hand_panel.set_hand(hand, sp)
+
+func _on_card_played(card: CardData) -> void:
+	if not game.can_play_card_action():
+		# 這裡可以加入提示：目前無法執行卡牌行動
+		return
+
+	if card is StrategyCardData:
+		# 進入策略卡瞄準模式
+		targeting_strategy = card
+		valid_strategy_targets = game.get_valid_strategy_targets(card)
+		hint_overlay.set("strategy_targets", valid_strategy_targets)
+		hint_overlay.set("all_pieces_on_board", game.board.pieces.keys())
+		hint_overlay.is_targeting = true
+		hint_overlay.queue_redraw()
+	elif card is SummonCardData:
+		# TODO: 若召喚卡需要選擇位置，亦可在此實作
+		pass
 
 func _update_hud() -> void:
 	if hud == null or not hud.has_method("update_state"):
@@ -258,9 +282,9 @@ func _on_end_turn_requested() -> void:
 func _clear_strategy_targeting() -> void:
 	targeting_strategy = null
 	valid_strategy_targets.clear()
-	hint_overlay.strategy_targets.clear()
-	hint_overlay.all_piece_pos.clear()
+	hint_overlay.set("strategy_targets", [])
+	hint_overlay.set("all_pieces_on_board", [])
 	hint_overlay.is_targeting = false
-	hint_overlay.strategy_hover_poses.clear()
+	hint_overlay.set("strategy_hover_poses", [])
 	hovered_pos = Vector2i(-1, -1)
 	hint_overlay.queue_redraw()

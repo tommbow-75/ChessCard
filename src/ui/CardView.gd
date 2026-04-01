@@ -45,6 +45,10 @@ var _strat_name:        String = "謀略"
 var _strat_sp_cost:     int    = 1
 var _strat_effect_text: String = ""
 
+# -- 選中狀態 --
+var is_selected: bool = false
+var can_afford:  bool = true 
+
 # ── 召喚卡設定 ──────────────────────────────────────────────────────
 func setup(card: SummonCardData) -> void:
 	_mode       = CardMode.SUMMON
@@ -87,6 +91,14 @@ func _draw() -> void:
 		_draw_strategy()
 	else:
 		_draw_summon()
+	
+	# 繪製選中高亮框
+	if is_selected:
+		var highlight_color = Color.GREEN if can_afford else Color.RED
+		# 繪製稍微大一點的外框
+		draw_rect(Rect2(-4, -4, CARD_W + 8, CARD_H + 8), highlight_color, false, 4)
+		# 繪製半透明遮罩
+		draw_rect(Rect2(0, 0, CARD_W, CARD_H), highlight_color * Color(1,1,1,0.15))
 
 # ── 繪製謀略卡（依 stragety_card_demo_v1.png）─────────────────────
 func _draw_strategy() -> void:

@@ -1,4 +1,4 @@
-﻿class_name GameHUD
+class_name GameHUD
 extends CanvasLayer
 
 @onready var turn_label: Label = $Panel/VBox/TurnLabel
@@ -18,6 +18,10 @@ signal end_turn_requested
 func _ready() -> void:
 	restart_btn.pressed.connect(func(): restart_requested.emit())
 	end_turn_btn.pressed.connect(func(): end_turn_requested.emit())
+	
+	# 強制設定中文以避開編碼或場景文字遺失問題
+	restart_btn.text = "🔄 重啟遊戲"
+	end_turn_btn.text = "🏁 結束回合"
 
 func update_state(
 		current_turn: int,
