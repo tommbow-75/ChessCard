@@ -5,13 +5,12 @@
 
 [sub_resource type="Resource" id="Resource_2e4dt"]
 script = ExtResource("2_7lyju")
-timing = 1
+timing = 2
 metadata/_custom_type_script = "uid://dya1ad8fljg44"
 
 [resource]
 script = ExtResource("1_qwhpk")
 summon_type = 3
-morale_value = 10
 special_effects = Array[Resource]([SubResource("Resource_2e4dt")])
 id = "knight_horse"
 card_name = "騎士"

@@ -172,7 +172,8 @@ func summon_piece(card: SummonCardData, pos: Vector2i, side: int) -> bool:
 	piece.special_effects = card.special_effects.duplicate()
 	board.set_piece(pos, piece)
 
-	var context := {"game_state": self, "side": side, "piece": piece}
+	# --- 效果觸發: SUMMON (召喚時立即觸發) ---
+	var context := {"game_state": self , "side": side, "piece": piece}
 	for effect in piece.special_effects:
 		if effect.timing == SummonEffectTiming.Timing.SUMMON:
 			effect.execute(context)
@@ -281,8 +282,8 @@ func play_strategy_card(card: StrategyCardData, target_pos: Vector2i = Vector2i(
 	for eff in card.special_effects:
 		if not (eff is StrategyEffectTiming):
 			continue
-		var context := {"game": self, "caster_side": current_turn, "target_pos": target_pos}
-		if eff.target_mode != null and eff.target_mode.mode == TargetMode.Mode.NONE:
+		var context := {"game": self , "caster_side": current_turn, "target_pos": target_pos}
+		if eff.target_mode != null:
 			context["affected_positions"] = []
 			eff.execute(context)
 		else:
@@ -309,7 +310,7 @@ func get_valid_strategy_targets(card: StrategyCardData) -> Array[Vector2i]:
 		return valid_poses
 
 	var eff = card.special_effects[0] as StrategyEffectTiming
-	if eff == null or eff.target_mode == null or eff.target_mode.mode == TargetMode.Mode.NONE:
+	if eff == null or eff.target_mode == null:
 		return valid_poses
 
 	if eff.target_mode.mode == TargetMode.Mode.AREA_3X3:
@@ -321,7 +322,7 @@ func get_valid_strategy_targets(card: StrategyCardData) -> Array[Vector2i]:
 	for y in range(10):
 		for x in range(9):
 			var pos := Vector2i(x, y)
-			var context := {"game": self, "caster_side": current_turn, "target_pos": pos}
+			var context := {"game": self , "caster_side": current_turn, "target_pos": pos}
 			if eff.is_valid_target(pos, context):
 				valid_poses.append(pos)
 	return valid_poses
@@ -346,14 +347,16 @@ func _deduct_capture_morale(piece_type: int, victim_side: int) -> void:
 			is_game_over = true
 			winner = XiangqiPiece.Side.RED
 
+# --- 效果觸發: BORN (天生技能/吃子時持續生效) ---
 func _trigger_born_capture_effects(piece: XiangqiPiece) -> void:
-	var context := {"game_state": self, "side": piece.side, "piece": piece}
+	var context := {"game_state": self , "side": piece.side, "piece": piece}
 	for effect in piece.special_effects:
 		if effect.timing == SummonEffectTiming.Timing.BORN and effect is RestoreOnCaptureEffect:
 			effect.execute(context)
 
+# --- 效果觸發: ONCE (限發動一次，發動完移除效果) ---
 func _trigger_and_consume_once_effects(piece: XiangqiPiece) -> void:
-	var context := {"game_state": self, "side": piece.side, "piece": piece}
+	var context := {"game_state": self , "side": piece.side, "piece": piece}
 	var to_remove: Array = []
 	for effect in piece.special_effects:
 		if effect.timing == SummonEffectTiming.Timing.ONCE:
