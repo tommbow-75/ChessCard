@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="StrategyCardData" format=3 uid="uid://cv31dq312g7nk"]
+
+[ext_resource type="Script" uid="uid://cdqbrp6keu1b0" path="res://Scripts/strategy_card_data.gd" id="1_rrlju"]
+[ext_resource type="Script" uid="uid://b0hqg3sgsmg7t" path="res://Scripts/Strategy/strategy_effect_timing.gd" id="2_s4jda"]
+[ext_resource type="Script" uid="uid://diarb3eek7oye" path="res://Scripts/CardEffectLayers/effect_target.gd" id="3_0fha2"]
+[ext_resource type="Script" uid="uid://cgwno7tuuf7e3" path="res://Scripts/CardEffectLayers/target_piece_mask.gd" id="4_wxuds"]
+[ext_resource type="Script" uid="uid://cb0kttqxx60ja" path="res://Scripts/Strategy/remove_piece_effect.gd" id="5_ls3tw"]
+[ext_resource type="Script" uid="uid://b64yhx18ab3as" path="res://Scripts/CardEffectLayers/target_mode.gd" id="6_x52an"]
+[ext_resource type="Script" uid="uid://b6q5d6ta5s07n" path="res://Scripts/CardEffectLayers/target_type.gd" id="7_4jjqg"]
+
+[sub_resource type="Resource" id="Resource_umaqg"]
+script = ExtResource("3_0fha2")
+metadata/_custom_type_script = "uid://diarb3eek7oye"
+
+[sub_resource type="Resource" id="Resource_yrvfs"]
+script = ExtResource("4_wxuds")
+mask = 120
+metadata/_custom_type_script = "uid://cgwno7tuuf7e3"
+
+[sub_resource type="Resource" id="Resource_1gecy"]
+script = ExtResource("6_x52an")
+metadata/_custom_type_script = "uid://b64yhx18ab3as"
+
+[sub_resource type="Resource" id="Resource_p4td1"]
+script = ExtResource("7_4jjqg")
+metadata/_custom_type_script = "uid://b6q5d6ta5s07n"
+
+[sub_resource type="Resource" id="Resource_8eusv"]
+script = ExtResource("5_ls3tw")
+target_type = SubResource("Resource_p4td1")
+effect_target = SubResource("Resource_umaqg")
+piece_mask = SubResource("Resource_yrvfs")
+target_mode = SubResource("Resource_1gecy")
+metadata/_custom_type_script = "uid://cb0kttqxx60ja"
+
+[resource]
+script = ExtResource("1_rrlju")
+special_effects = Array[ExtResource("2_s4jda")]([SubResource("Resource_8eusv")])
+id = "shooting_sc"
+card_name = "射擊"
+sp_cost = 2
+effect_description = "移除**對方一子(除了General、Advisor、Elephant)"
+metadata/_custom_type_script = "uid://cdqbrp6keu1b0"

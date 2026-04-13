@@ -1,6 +1,6 @@
 class_name RestoreOnCaptureEffect
-extends CardEffectTiming
-## 繼承自CardEffectTiming
+extends SummonEffectTiming
+## 繼承自SummonEffectTiming
 
 ## 天生效果：每次該棋子吃子後，回復指定士氣
 ## 用於：猛將（吃子後 +2 士氣）

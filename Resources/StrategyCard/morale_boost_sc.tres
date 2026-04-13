@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="StrategyCardData" format=3 uid="uid://w3kqajpwwccy"]
+
+[ext_resource type="Script" uid="uid://cdqbrp6keu1b0" path="res://Scripts/strategy_card_data.gd" id="1_wtjx0"]
+[ext_resource type="Script" uid="uid://b0hqg3sgsmg7t" path="res://Scripts/Strategy/strategy_effect_timing.gd" id="2_6riwb"]
+[ext_resource type="Script" uid="uid://diarb3eek7oye" path="res://Scripts/CardEffectLayers/effect_target.gd" id="3_8f4le"]
+[ext_resource type="Script" uid="uid://b2a4cbgq3x6vf" path="res://Scripts/Strategy/sc_heal_morale_effect.gd" id="4_egf7m"]
+[ext_resource type="Script" uid="uid://b6q5d6ta5s07n" path="res://Scripts/CardEffectLayers/target_type.gd" id="5_md2dq"]
+
+[sub_resource type="Resource" id="Resource_4rqjd"]
+script = ExtResource("3_8f4le")
+target = 0
+metadata/_custom_type_script = "uid://diarb3eek7oye"
+
+[sub_resource type="Resource" id="Resource_dxol8"]
+script = ExtResource("5_md2dq")
+type = 0
+metadata/_custom_type_script = "uid://b6q5d6ta5s07n"
+
+[sub_resource type="Resource" id="Resource_0cu08"]
+script = ExtResource("4_egf7m")
+target_type = SubResource("Resource_dxol8")
+effect_target = SubResource("Resource_4rqjd")
+metadata/_custom_type_script = "uid://b2a4cbgq3x6vf"
+
+[resource]
+script = ExtResource("1_wtjx0")
+special_effects = Array[ExtResource("2_6riwb")]([SubResource("Resource_0cu08")])
+id = "morale_boost_sc"
+card_name = "鼓舞"
+effect_description = "回復3點士氣"
+metadata/_custom_type_script = "uid://cdqbrp6keu1b0"

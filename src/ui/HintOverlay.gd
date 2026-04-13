@@ -5,11 +5,11 @@ extends Node2D
 const CELL_SIZE := 70
 const OFFSET := Vector2(50, 50)
 
-var capture_positions: Array[Vector2i] = []
-var strategy_targets: Array[Vector2i] = []
-var strategy_hover_poses: Array[Vector2i] = []
+var capture_positions: Array = []
+var strategy_targets: Array = []
+var strategy_hover_poses: Array = []
 var is_targeting: bool = false
-var all_piece_pos: Array[Vector2i] = []
+var all_pieces_on_board: Array = []
 
 func board_to_screen(grid_pos: Vector2i) -> Vector2:
 	return OFFSET + Vector2(grid_pos.x * CELL_SIZE, grid_pos.y * CELL_SIZE)
@@ -21,7 +21,7 @@ func _draw():
 		
 	# 謀略卡目標選擇狀態（反向：遮罩不能選的「格子上的棋子」）
 	if is_targeting:
-		for p in all_piece_pos:
+		for p in all_pieces_on_board:
 			if p not in strategy_targets:
 				var center = board_to_screen(p)
 				# 繪製半透明黑圈將其暗化

@@ -1,5 +1,5 @@
 class_name CannotEatEffect
-extends CardEffectTiming
+extends SummonEffectTiming
 
 ## 天生效果：禁止此棋子吃掉特定種類的目標
 ## 用於：垃圾炮（不可吃 GENERAL）

@@ -1,19 +1,13 @@
 class_name SummonCardData
 extends CardData
 
-## 召喚卡資料結構
-## 專用於召喚象棋棋子的卡牌
-
 @export var summon_type: ChessPieceData.PieceType = ChessPieceData.PieceType.SOLDIER
-@export var morale_value: int = 5
-
-## 效果積木列表，可在 Inspector 中掛載任意 CardEffectTiming 子類別
-@export var special_effects: Array[CardEffectTiming] = []
+@export var morale_value: int = 10
+@export var special_effects: Array[SummonEffectTiming] = []
 
 func _init() -> void:
 	category = CardCategory.SUMMON
 
-## 可自動根據召喚兵種補齊對應的士氣值
 func setup_default_morale() -> void:
 	match summon_type:
 		ChessPieceData.PieceType.GENERAL:

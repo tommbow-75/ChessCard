@@ -1,10 +1,14 @@
-class_name HealMoraleEffect
-extends StragetyEffect
+class_name MoraleBoostEffect
+extends StrategyEffectTiming
 
 @export var heal_amount: int = 3
 
 func _init() -> void:
-	target_type = TargetType.NONE
+	target_type = TargetType.new()
+	target_type.type = TargetType.Type.PLAYER
+	effect_target = EffectTarget.new()
+	effect_target.target = EffectTarget.Target.SELF
+
 
 func execute(context: Dictionary) -> void:
 	var game = context.get("game")

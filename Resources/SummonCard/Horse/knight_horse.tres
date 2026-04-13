@@ -1,20 +1,20 @@
-[gd_resource type="Resource" script_class="SummonCardData" format=3]
+[gd_resource type="Resource" script_class="SummonCardData" format=3 uid="uid://dm4b588kypr82"]
 
-[ext_resource type="Script" path="res://Scripts/summon_card_data.gd" id="1"]
-[ext_resource type="Script" path="res://Scripts/card_EffectTiming.gd" id="2"]
-[ext_resource type="Script" path="res://Scripts/Effects/knight_leap_effect.gd" id="3"]
+[ext_resource type="Script" uid="uid://qikwe53aggen" path="res://Scripts/summon_card_data.gd" id="1_qwhpk"]
+[ext_resource type="Script" uid="uid://dya1ad8fljg44" path="res://Scripts/Effects/knight_leap_effect.gd" id="2_7lyju"]
 
-[sub_resource type="Resource" id="Resource_eff"]
-script = ExtResource("3")
-timing = 1
+[sub_resource type="Resource" id="Resource_2e4dt"]
+script = ExtResource("2_7lyju")
+timing = 2
+metadata/_custom_type_script = "uid://dya1ad8fljg44"
 
 [resource]
-script = ExtResource("1")
+script = ExtResource("1_qwhpk")
 summon_type = 3
-morale_value = 10
-special_effects = Array[ExtResource("2")]([SubResource("Resource_eff")])
+special_effects = Array[Resource]([SubResource("Resource_2e4dt")])
 id = "knight_horse"
 card_name = "騎士"
 category = 0
 sp_cost = 2
-effect_description = "一次性：全向 8 種跳躍走法"
+effect_description = "一次性 能夠從相對位置走到1,3"
+metadata/_custom_type_script = "uid://qikwe53aggen"
