@@ -16,8 +16,8 @@ var piece_views: Dictionary = {}
 var red_in_check: bool = false
 var black_in_check: bool = false
 
-var targeting_strategy: StrategyCardData = null
-var valid_strategy_targets: Array[Vector2i] = []
+var targeting_card: CardData = null
+var valid_card_targets: Array[Vector2i] = []
 var hovered_pos := Vector2i(-1, -1)
 
 const PieceViewScript = preload("res://src/ui/PieceView.gd")
@@ -49,20 +49,21 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		var local_pos = get_local_mouse_position()
 		var grid = _screen_to_board(local_pos)
-		if _is_valid_grid(grid) and targeting_strategy != null:
+		if _is_valid_grid(grid) and targeting_card != null:
 			if hovered_pos != grid:
 				hovered_pos = grid
 
 				var hover_poses: Array[Vector2i] = [grid]
-				var first_eff = targeting_strategy.special_effects[0] if targeting_strategy.special_effects.size() > 0 else null
-				if first_eff != null and first_eff is StrategyEffectTiming \
-						and first_eff.target_mode != null \
-						and first_eff.target_mode.mode == TargetMode.Mode.AREA_3X3:
-					for dx in range(-1, 2):
-						for dy in range(-1, 2):
-							if dx == 0 and dy == 0:
-								continue
-							hover_poses.append(Vector2i(grid.x + dx, grid.y + dy))
+				if targeting_card is StrategyCardData:
+					var first_eff = targeting_card.special_effects[0] if targeting_card.special_effects.size() > 0 else null
+					if first_eff != null and first_eff is StrategyEffectTiming \
+							and first_eff.target_mode != null \
+							and first_eff.target_mode.mode == TargetMode.Mode.AREA_3X3:
+						for dx in range(-1, 2):
+							for dy in range(-1, 2):
+								if dx == 0 and dy == 0:
+									continue
+								hover_poses.append(Vector2i(grid.x + dx, grid.y + dy))
 
 				hint_overlay.strategy_hover_poses.assign(hover_poses)
 				hint_overlay.queue_redraw()
@@ -79,16 +80,24 @@ func _input(event: InputEvent) -> void:
 			_handle_click(grid)
 
 func _handle_click(grid: Vector2i) -> void:
-	if targeting_strategy != null:
-		if grid in valid_strategy_targets:
-			if game.play_strategy_card(targeting_strategy, grid):
-				_clear_strategy_targeting()
-				_rebuild_pieces()
-				_update_check_state()
-				_update_hud()
-				refresh_hand()
+	if targeting_card != null:
+		if grid in valid_card_targets:
+			if targeting_card is StrategyCardData:
+				if game.play_strategy_card(targeting_card, grid):
+					_clear_card_targeting()
+					_rebuild_pieces()
+					_update_check_state()
+					_update_hud()
+					refresh_hand()
+			elif targeting_card is SummonCardData:
+				if game.summon_piece(targeting_card, grid, game.current_turn):
+					_clear_card_targeting()
+					_rebuild_pieces()
+					_update_check_state()
+					_update_hud()
+					refresh_hand()
 		else:
-			_clear_strategy_targeting()
+			_clear_card_targeting()
 		return
 
 	if not game.can_take_move_action():
@@ -201,16 +210,31 @@ func _on_card_played(card: CardData) -> void:
 		return
 
 	if card is StrategyCardData:
-		# 進入策略卡瞄準模式
-		targeting_strategy = card
-		valid_strategy_targets = game.get_valid_strategy_targets(card)
-		hint_overlay.set("strategy_targets", valid_strategy_targets)
-		hint_overlay.set("all_pieces_on_board", game.board.pieces.keys())
-		hint_overlay.is_targeting = true
-		hint_overlay.queue_redraw()
+		var targets = game.get_valid_strategy_targets(card)
+		if targets.is_empty():
+			# 如果沒有合法目標（通常代表是針對玩家的效果），則立刻發動
+			if game.play_strategy_card(card):
+				_rebuild_pieces()
+				_update_check_state()
+				_update_hud()
+				refresh_hand()
+		else:
+			# 進入策略卡瞄準模式
+			targeting_card = card
+			valid_card_targets = targets
+			hint_overlay.set("strategy_targets", valid_card_targets)
+			hint_overlay.set("all_pieces_on_board", game.board.pieces.keys())
+			hint_overlay.is_targeting = true
+			hint_overlay.queue_redraw()
 	elif card is SummonCardData:
-		# TODO: 若召喚卡需要選擇位置，亦可在此實作
-		pass
+		var targets = game.get_valid_summon_positions(card)
+		if not targets.is_empty():
+			targeting_card = card
+			valid_card_targets = targets
+			hint_overlay.set("strategy_targets", valid_card_targets) # 沿用 strategy_targets 的視覺效果
+			hint_overlay.set("all_pieces_on_board", game.board.pieces.keys())
+			hint_overlay.is_targeting = true
+			hint_overlay.queue_redraw()
 
 func _update_hud() -> void:
 	if hud == null or not hud.has_method("update_state"):
@@ -260,7 +284,7 @@ func restart_game() -> void:
 	selected_pos = Vector2i(-1, -1)
 	red_in_check = false
 	black_in_check = false
-	_clear_strategy_targeting()
+	_clear_card_targeting()
 	_update_hints()
 	_rebuild_pieces()
 	_update_hud()
@@ -272,16 +296,16 @@ func _on_end_turn_requested() -> void:
 	if not game.end_turn():
 		return
 	selected_pos = Vector2i(-1, -1)
-	_clear_strategy_targeting()
+	_clear_card_targeting()
 	_update_hints()
 	_update_check_state()
 	_update_hud()
 	refresh_hand()
 	queue_redraw()
 
-func _clear_strategy_targeting() -> void:
-	targeting_strategy = null
-	valid_strategy_targets.clear()
+func _clear_card_targeting() -> void:
+	targeting_card = null
+	valid_card_targets.clear()
 	hint_overlay.set("strategy_targets", [])
 	hint_overlay.set("all_pieces_on_board", [])
 	hint_overlay.is_targeting = false

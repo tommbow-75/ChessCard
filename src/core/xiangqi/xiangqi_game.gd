@@ -275,30 +275,39 @@ func play_strategy_card(card: StrategyCardData, target_pos: Vector2i = Vector2i(
 	if not can_play_card_action():
 		return false
 
-	var current_sp = sp_red if current_turn == XiangqiPiece.Side.RED else sp_black
+	var side = current_turn
+	var current_sp = sp_red if side == XiangqiPiece.Side.RED else sp_black
 	if current_sp < card.sp_cost:
+		return false
+
+	# 檢查是否需要瞄準
+	var needs_targeting := false
+	for eff in card.special_effects:
+		if eff is StrategyEffectTiming and eff.target_type != null and eff.target_type.type != TargetType.Type.PLAYER:
+			needs_targeting = true
+			break
+	
+	if needs_targeting and target_pos == Vector2i(-1, -1):
 		return false
 
 	for eff in card.special_effects:
 		if not (eff is StrategyEffectTiming):
 			continue
-		var context := {"game": self , "caster_side": current_turn, "target_pos": target_pos}
-		if eff.target_mode != null:
-			context["affected_positions"] = []
-			eff.execute(context)
-		else:
-			var affected = eff.get_affected_cells(target_pos, context)
-			if affected.is_empty():
-				return false
-			context["affected_positions"] = affected
-			eff.execute(context)
+		
+		var context := {"game": self , "caster_side": side, "target_pos": target_pos}
+		var affected = eff.get_affected_cells(target_pos, context)
+		
+		# 這裡不檢查 affected 是否為空，因為 PLAYER 類型的效果 affected 為空是正常的
+		# 實際上 is_valid_target 已經在 UI 端做過初步驗證了
+		context["affected_positions"] = affected
+		eff.execute(context)
 
-	if current_turn == XiangqiPiece.Side.RED:
+	if side == XiangqiPiece.Side.RED:
 		sp_red -= card.sp_cost
 	else:
 		sp_black -= card.sp_cost
 
-	var deck = deck_red if current_turn == XiangqiPiece.Side.RED else deck_black
+	var deck = deck_red if side == XiangqiPiece.Side.RED else deck_black
 	deck.play_card(card)
 	_consume_card_action()
 
@@ -309,11 +318,16 @@ func get_valid_strategy_targets(card: StrategyCardData) -> Array[Vector2i]:
 	if card.special_effects.size() == 0:
 		return valid_poses
 
+	# 這裡我們只取第一個效果來判斷瞄準（大部分謀略卡只有一個主效果）
 	var eff = card.special_effects[0] as StrategyEffectTiming
-	if eff == null or eff.target_mode == null:
+	if eff == null:
+		return valid_poses
+	
+	# 如果是針對玩家，不需要瞄準棋盤格
+	if eff.target_type != null and eff.target_type.type == TargetType.Type.PLAYER:
 		return valid_poses
 
-	if eff.target_mode.mode == TargetMode.Mode.AREA_3X3:
+	if eff.target_mode != null and eff.target_mode.mode == TargetMode.Mode.AREA_3X3:
 		for y in range(10):
 			for x in range(9):
 				valid_poses.append(Vector2i(x, y))
@@ -324,6 +338,16 @@ func get_valid_strategy_targets(card: StrategyCardData) -> Array[Vector2i]:
 			var pos := Vector2i(x, y)
 			var context := {"game": self , "caster_side": current_turn, "target_pos": pos}
 			if eff.is_valid_target(pos, context):
+				valid_poses.append(pos)
+	return valid_poses
+
+func get_valid_summon_positions(_card: SummonCardData) -> Array[Vector2i]:
+	var valid_poses: Array[Vector2i] = []
+	var side = current_turn
+	for y in range(10):
+		for x in range(9):
+			var pos := Vector2i(x, y)
+			if _is_basic_rule_position(pos, side) and not board.has_piece(pos):
 				valid_poses.append(pos)
 	return valid_poses
 
