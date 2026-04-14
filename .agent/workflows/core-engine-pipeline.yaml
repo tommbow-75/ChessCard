@@ -28,4 +28,4 @@ steps:
 
     on_success:
       action: "完成任務"
-      message: "核心引擎實作與驗收已完成，程式碼已確認安全！"
+      message: "卡牌實作與驗收已完成，程式碼已確認安全！"

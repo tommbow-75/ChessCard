@@ -9,7 +9,6 @@ system_prompt: |
 tools:
   - read_file          # 可以讀取專案架構
   - write_file         # 可以建立或修改 .gd / .tres 檔案
-  - read_game-rules    # 讀取 ChessCard 規則 (呼叫你之前建的技能)
 # 注意：這裡刻意不給執行測試的工具
 
 skills:

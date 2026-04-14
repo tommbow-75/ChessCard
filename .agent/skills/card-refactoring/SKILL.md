@@ -10,9 +10,9 @@ version: 0.1.0
 
 ## 1. 資訊邊界對齊 (漸進式揭露)
 執行任何程式碼修改前，讀取並確認以下架構文件：
-* 讀取 `./references/GameProcessStructure.md`，確認當前修改會影響遊戲生命週期的哪個階段。
-* 讀取 `./references/Class_Structure.md`，確認目標類別 (Class) 與各 Manager 之間的依賴關係。
-* 若涉及棋盤座標或尋路變動，核對 `./references/Board_Structure.md` 確認座標算法。
+* 讀取 `.agent/references/GameProcessStructure.md`，確認當前修改會影響遊戲生命週期的哪個階段。
+* 讀取 `.agent/references/Class_Structure.md`，確認目標類別 (Class) 與各 Manager 之間的依賴關係。
+* 若涉及棋盤座標或尋路變動，核對 `.agent/references/Board_Structure.md` 確認座標算法。
 
 ## 2. 卡牌種類製作
 * 先確認使用者想製作召喚卡/謀略卡
