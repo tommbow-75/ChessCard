@@ -393,6 +393,40 @@ func _trigger_and_consume_once_effects(piece: XiangqiPiece) -> void:
 	for effect in to_remove:
 		piece.special_effects.erase(effect)
 
+## 查詢當前回合擁有可主動發動 ONCE 效果的我方棋子位置清單
+func get_once_effect_pieces() -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	if is_game_over:
+		return result
+	for pos in board.pieces:
+		var piece: XiangqiPiece = board.pieces[pos]
+		if piece.side != current_turn:
+			continue
+		for effect in piece.special_effects:
+			if effect.timing == SummonEffectTiming.Timing.ONCE:
+				result.append(pos)
+				break
+	return result
+
+## 玩家主動觸發 piece_pos 棋子上的所有 ONCE 效果並移除
+## 回傳 true 代表成功發動（至少有一個 ONCE 效果）
+func activate_once_effects_on_piece(piece_pos: Vector2i) -> bool:
+	if is_game_over:
+		return false
+	var piece: XiangqiPiece = board.get_piece(piece_pos)
+	if piece == null or piece.side != current_turn:
+		return false
+	var has_once := false
+	for effect in piece.special_effects:
+		if effect.timing == SummonEffectTiming.Timing.ONCE:
+			has_once = true
+			break
+	if not has_once:
+		return false
+	_trigger_and_consume_once_effects(piece)
+	return true
+
+
 func _has_forced_follow_up_move() -> bool:
 	return pending_extra_move or pending_extra_move_from != Vector2i(-1, -1)
 

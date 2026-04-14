@@ -23,6 +23,7 @@ var hovered_pos := Vector2i(-1, -1)
 const PieceViewScript = preload("res://src/ui/PieceView.gd")
 const LobbyPanelScript = preload("res://src/ui/LobbyPanel.gd")
 
+
 func _ready() -> void:
 	game = XiangqiGame.new()
 	game.setup_standard_board()
@@ -36,7 +37,7 @@ func _ready() -> void:
 		hud.restart_requested.connect(restart_game)
 	if hud and hud.has_signal("end_turn_requested"):
 		hud.end_turn_requested.connect(_on_end_turn_requested)
-	
+
 	if card_hand_panel:
 		card_hand_panel.card_played.connect(_on_card_played)
 
@@ -46,13 +47,19 @@ func _input(event: InputEvent) -> void:
 	if game.is_game_over:
 		return
 
+	# ── ESC：取消浮框 ─────────────────────────────────
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		if hint_overlay.once_popup_visible:
+			_close_once_popup()
+			return
+
+	# ── 滑鼠移動：謀略卡 hover（浮框不隨 hover 開關）──
 	if event is InputEventMouseMotion:
 		var local_pos = get_local_mouse_position()
 		var grid = _screen_to_board(local_pos)
 		if _is_valid_grid(grid) and targeting_card != null:
 			if hovered_pos != grid:
 				hovered_pos = grid
-
 				var hover_poses: Array[Vector2i] = [grid]
 				if targeting_card is StrategyCardData:
 					var first_eff = targeting_card.special_effects[0] if targeting_card.special_effects.size() > 0 else null
@@ -64,7 +71,6 @@ func _input(event: InputEvent) -> void:
 								if dx == 0 and dy == 0:
 									continue
 								hover_poses.append(Vector2i(grid.x + dx, grid.y + dy))
-
 				hint_overlay.strategy_hover_poses.assign(hover_poses)
 				hint_overlay.queue_redraw()
 		else:
@@ -73,11 +79,35 @@ func _input(event: InputEvent) -> void:
 				hint_overlay.set("strategy_hover_poses", [])
 				hint_overlay.queue_redraw()
 
+	# ── 滑鼠左鍵 ─────────────────────────────────────
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var local_pos = get_local_mouse_position()
+
+		# ── 優先：ONCE 浮框已鎖定時的按鈕 hit-test ──────
+		if hint_overlay.once_popup_visible:
+			if hint_overlay.once_activate_btn_rect.has_point(local_pos):
+				_on_once_activate_clicked()
+				return
+			if hint_overlay.once_cancel_btn_rect.has_point(local_pos):
+				_close_once_popup()
+				return
+			# 點擊浮框以外 → 關閉，不穿透到棋盤
+			if not hint_overlay.once_popup_rect.has_point(local_pos):
+				_close_once_popup()
+			return
+
 		var grid = _screen_to_board(local_pos)
-		if _is_valid_grid(grid):
-			_handle_click(grid)
+		if not _is_valid_grid(grid):
+			return
+
+		# ── 在無卡牌選取模式下，點擊 ONCE 棋子開啟浮框 ──
+		if targeting_card == null:
+			var once_poses := game.get_once_effect_pieces()
+			if grid in once_poses:
+				_open_once_popup(grid)
+				return
+
+		_handle_click(grid)
 
 func _handle_click(grid: Vector2i) -> void:
 	if targeting_card != null:
@@ -89,6 +119,7 @@ func _handle_click(grid: Vector2i) -> void:
 					_update_check_state()
 					_update_hud()
 					refresh_hand()
+					_refresh_once_highlights()
 			elif targeting_card is SummonCardData:
 				if game.summon_piece(targeting_card, grid, game.current_turn):
 					_clear_card_targeting()
@@ -96,6 +127,7 @@ func _handle_click(grid: Vector2i) -> void:
 					_update_check_state()
 					_update_hud()
 					refresh_hand()
+					_refresh_once_highlights()
 		else:
 			_clear_card_targeting()
 		return
@@ -124,6 +156,7 @@ func _handle_click(grid: Vector2i) -> void:
 			_update_check_state()
 			_update_hud()
 			refresh_hand()
+			_refresh_once_highlights()
 			queue_redraw()
 			return
 
@@ -155,6 +188,58 @@ func _draw_check_label(font: Font, font_size: int, text: String, pos: Vector2, c
 	draw_rect(Rect2(pos.x - 4, pos.y - th * 0.5 - 2, tw + 8, th + 4), Color(1, 1, 0.8, 0.85))
 	draw_rect(Rect2(pos.x - 4, pos.y - th * 0.5 - 2, tw + 8, th + 4), color, false, 2)
 	draw_string(font, Vector2(pos.x, pos.y + font.get_ascent(font_size) - th * 0.5), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
+
+# ── ONCE 浮框管理 ─────────────────────────────────────
+
+## 點擊棋子後開啟並鎖定浮框
+func _open_once_popup(piece_pos: Vector2i) -> void:
+	var piece := game.board.get_piece(piece_pos)
+	if piece == null:
+		return
+	var lines: Array[String] = []
+	for eff in piece.special_effects:
+		if eff.timing == SummonEffectTiming.Timing.ONCE:
+			lines.append(_get_effect_description(eff))
+	if lines.is_empty():
+		return
+
+	hint_overlay.once_popup_grid_pos = piece_pos
+	hint_overlay.once_popup_lines    = lines
+	hint_overlay.once_popup_visible  = true
+	hint_overlay.queue_redraw()
+
+## 關閉浮框
+func _close_once_popup() -> void:
+	hint_overlay.once_popup_visible  = false
+	hint_overlay.once_popup_grid_pos = Vector2i(-1, -1)
+	hint_overlay.once_popup_lines.clear()
+	hint_overlay.queue_redraw()
+
+## 點擊「發動」按鈕
+func _on_once_activate_clicked() -> void:
+	var pos: Vector2i = hint_overlay.once_popup_grid_pos
+	_close_once_popup()
+	if game.activate_once_effects_on_piece(pos):
+		_rebuild_pieces()
+		_update_check_state()
+		_update_hud()
+		_refresh_once_highlights()
+		queue_redraw()
+
+## 根據效果類型回傳中文描述
+func _get_effect_description(effect: SummonEffectTiming) -> String:
+	if effect is ExtraMoveEffect:
+		return "吃子後可額外移動一次"
+	if effect is KnightLeapEffect:
+		return "使用一次騎士跳躍（無視拐馬腳）"
+	return "特殊一次性效果"
+
+## 刷新 HintOverlay 上的 ONCE 效果綠圈高亮
+func _refresh_once_highlights() -> void:
+	hint_overlay.once_effect_positions.assign(game.get_once_effect_pieces())
+	hint_overlay.queue_redraw()
+
+# ── 棋盤與棋子 ────────────────────────────────────────
 
 func _update_hints() -> void:
 	board_renderer.selected_pos = selected_pos
@@ -192,13 +277,15 @@ func _rebuild_pieces() -> void:
 		view.setup(piece, pos, BOARD_OFFSET)
 		piece_views[pos] = view
 
+# ── 手牌 ──────────────────────────────────────────────
+
 func refresh_hand() -> void:
 	if card_hand_panel == null:
 		return
 	var side = game.current_turn
 	var deck = game.deck_red if side == XiangqiPiece.Side.RED else game.deck_black
 	var sp   = game.sp_red if side == XiangqiPiece.Side.RED else game.sp_black
-	
+
 	var hand: Array = []
 	for c in deck.get_hand():
 		hand.append(c)
@@ -206,20 +293,18 @@ func refresh_hand() -> void:
 
 func _on_card_played(card: CardData) -> void:
 	if not game.can_play_card_action():
-		# 這裡可以加入提示：目前無法執行卡牌行動
 		return
 
 	if card is StrategyCardData:
 		var targets = game.get_valid_strategy_targets(card)
 		if targets.is_empty():
-			# 如果沒有合法目標（通常代表是針對玩家的效果），則立刻發動
 			if game.play_strategy_card(card):
 				_rebuild_pieces()
 				_update_check_state()
 				_update_hud()
 				refresh_hand()
+				_refresh_once_highlights()
 		else:
-			# 進入策略卡瞄準模式
 			targeting_card = card
 			valid_card_targets = targets
 			hint_overlay.set("strategy_targets", valid_card_targets)
@@ -231,10 +316,12 @@ func _on_card_played(card: CardData) -> void:
 		if not targets.is_empty():
 			targeting_card = card
 			valid_card_targets = targets
-			hint_overlay.set("strategy_targets", valid_card_targets) # 沿用 strategy_targets 的視覺效果
+			hint_overlay.set("strategy_targets", valid_card_targets)
 			hint_overlay.set("all_pieces_on_board", game.board.pieces.keys())
 			hint_overlay.is_targeting = true
 			hint_overlay.queue_redraw()
+
+# ── HUD ───────────────────────────────────────────────
 
 func _update_hud() -> void:
 	if hud == null or not hud.has_method("update_state"):
@@ -252,6 +339,8 @@ func _update_hud() -> void:
 		game.can_end_turn()
 	)
 
+# ── 大廳 / 重啟 ───────────────────────────────────────
+
 func _show_lobby() -> void:
 	var lobby = LobbyPanelScript.new()
 	add_child(lobby)
@@ -268,39 +357,39 @@ func _on_game_start(deck_red_cards: Array, deck_black_cards: Array) -> void:
 		return
 	refresh_hand()
 	_update_hud()
-
-func _screen_to_board(screen_pos: Vector2) -> Vector2i:
-	var rel = screen_pos - BOARD_OFFSET
-	var gx = roundi(rel.x / CELL_SIZE)
-	var gy = roundi(rel.y / CELL_SIZE)
-	return Vector2i(gx, gy)
-
-func _is_valid_grid(grid: Vector2i) -> bool:
-	return grid.x >= 0 and grid.x <= 8 and grid.y >= 0 and grid.y <= 9
+	_refresh_once_highlights()
 
 func restart_game() -> void:
 	game.setup_standard_board()
 	selected_pos = Vector2i(-1, -1)
 	red_in_check = false
 	black_in_check = false
+	_close_once_popup()
 	_clear_card_targeting()
 	_update_hints()
 	_rebuild_pieces()
 	_update_hud()
 	refresh_hand()
+	_refresh_once_highlights()
 	queue_redraw()
 	_show_lobby()
+
+# ── 回合切換 ──────────────────────────────────────────
 
 func _on_end_turn_requested() -> void:
 	if not game.end_turn():
 		return
 	selected_pos = Vector2i(-1, -1)
+	_close_once_popup()
 	_clear_card_targeting()
 	_update_hints()
 	_update_check_state()
 	_update_hud()
 	refresh_hand()
+	_refresh_once_highlights()
 	queue_redraw()
+
+# ── 工具方法 ──────────────────────────────────────────
 
 func _clear_card_targeting() -> void:
 	targeting_card = null
@@ -311,3 +400,15 @@ func _clear_card_targeting() -> void:
 	hint_overlay.set("strategy_hover_poses", [])
 	hovered_pos = Vector2i(-1, -1)
 	hint_overlay.queue_redraw()
+
+func _screen_to_board(screen_pos: Vector2) -> Vector2i:
+	var rel = screen_pos - BOARD_OFFSET
+	var gx = roundi(rel.x / CELL_SIZE)
+	var gy = roundi(rel.y / CELL_SIZE)
+	return Vector2i(gx, gy)
+
+func _board_to_screen(grid_pos: Vector2i) -> Vector2:
+	return BOARD_OFFSET + Vector2(grid_pos.x * CELL_SIZE, grid_pos.y * CELL_SIZE)
+
+func _is_valid_grid(grid: Vector2i) -> bool:
+	return grid.x >= 0 and grid.x <= 8 and grid.y >= 0 and grid.y <= 9
