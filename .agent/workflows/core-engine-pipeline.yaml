@@ -1,0 +1,31 @@
+name: core_engine_pipeline
+description: 用於自動化生成、實作並驗收 ChessCard 核心引擎的工作流。
+trigger_skills: 
+  - core-engine  # 當這個技能被觸發時，啟動此工作流
+
+steps:
+  # 階段 1：實作
+  - step: 1
+    name: Code_Generation
+    agent: core-coder-agent
+    instruction: "請根據使用者的 Prompt 與掛載的技能規範，撰寫核心引擎腳本並存檔。"
+    on_success: proceed_to_step_2
+
+  # 階段 2：驗收 (Harness 的安全帶)
+  - step: 2
+    name: Core_Review_And_Test
+    agent: engine-reviewer-agent
+    instruction: "請讀取剛才生成的腳本，檢查是否符合架構，並嘗試執行 Godot 測試。如果發現錯誤，請列出具體的修改建議。"
+    
+    # 失敗恢復機制 (Recovery)
+    on_failure: 
+      action: "回退給 core-coder-agent"
+      prompt_template: |
+        【驗收退件】
+        測試或語法檢查未通過，請根據以下 Reviewer 的回報進行修正：
+        {{ reviewer_output }}
+      max_retries: 3  # 最多修改 3 次，避免無限迴圈浪費 Token
+
+    on_success:
+      action: "完成任務"
+      message: "核心引擎實作與驗收已完成，程式碼已確認安全！"
