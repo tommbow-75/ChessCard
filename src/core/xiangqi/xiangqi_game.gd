@@ -1,7 +1,8 @@
 class_name XiangqiGame
 extends RefCounted
 
-const MAX_ACTIONS_PER_TURN: int = 2
+## 每回合最多走棋次數（1次）
+const MAX_MOVE_ACTIONS_PER_TURN: int = 1
 
 var board: XiangqiBoard = XiangqiBoard.new()
 var current_turn: int = XiangqiPiece.Side.RED
@@ -18,8 +19,9 @@ var pending_extra_move_from: Vector2i = Vector2i(-1, -1)
 var pending_extra_move_forbid_capture: bool = false
 var pending_extra_move_forbidden_target: int = ForbidCaptureNextMoveEffect.FORBID_ALL_TARGETS
 
-var actions_used_this_turn: int = 0
+## 本回合已使用的走棋次數
 var move_actions_this_turn: int = 0
+## 本回合已使用的卡牌次數（僅供顯示，無上限限制）
 var card_actions_this_turn: int = 0
 
 var deck_red: DeckSystem = DeckSystem.new()
@@ -94,24 +96,26 @@ func start_turn() -> void:
 	else:
 		sp_black += 1
 
-func get_remaining_actions() -> int:
+func get_remaining_move_actions() -> int:
 	if _has_forced_follow_up_move():
 		return 1
-	return max(0, MAX_ACTIONS_PER_TURN - actions_used_this_turn)
+	return max(0, MAX_MOVE_ACTIONS_PER_TURN - move_actions_this_turn)
 
 func can_take_move_action() -> bool:
 	if is_game_over:
 		return false
 	if _has_forced_follow_up_move():
 		return true
-	return actions_used_this_turn < MAX_ACTIONS_PER_TURN
+	## 走棋次數未達上限
+	return move_actions_this_turn < MAX_MOVE_ACTIONS_PER_TURN
 
 func can_play_card_action() -> bool:
 	if is_game_over:
 		return false
 	if _has_forced_follow_up_move():
 		return false
-	return actions_used_this_turn < MAX_ACTIONS_PER_TURN
+	## 卡牌行動無次數上限，只要 SP 足夠即可發動
+	return true
 
 func can_end_turn() -> bool:
 	if is_game_over:
@@ -393,15 +397,12 @@ func _has_forced_follow_up_move() -> bool:
 	return pending_extra_move or pending_extra_move_from != Vector2i(-1, -1)
 
 func _consume_move_action() -> void:
-	actions_used_this_turn += 1
 	move_actions_this_turn += 1
 
 func _consume_card_action() -> void:
-	actions_used_this_turn += 1
 	card_actions_this_turn += 1
 
 func _reset_turn_state() -> void:
-	actions_used_this_turn = 0
 	move_actions_this_turn = 0
 	card_actions_this_turn = 0
 	pending_extra_move = false

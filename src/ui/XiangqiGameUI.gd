@@ -247,7 +247,6 @@ func _update_hud() -> void:
 		game.sp_black,
 		game.morale_red,
 		game.morale_black,
-		game.actions_used_this_turn,
 		game.move_actions_this_turn,
 		game.card_actions_this_turn,
 		game.can_end_turn()
