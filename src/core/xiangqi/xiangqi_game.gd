@@ -240,10 +240,12 @@ func move_piece(from_pos: Vector2i, to_pos: Vector2i) -> bool:
 	board.remove_piece(from_pos)
 	board.set_piece(to_pos, piece)
 
-	if did_capture:
-		_trigger_and_consume_once_effects(piece)
-
 	_consume_move_action()
+
+	# --- 移動完成後回調所有效果進行清理或狀態更新 ---
+	var callback_context := {"game_state": self, "piece": piece, "did_capture": did_capture}
+	for eff in piece.special_effects:
+		eff.on_move_completed(callback_context)
 
 	if locked_strategy_from != Vector2i(-1, -1):
 		pending_extra_move_from = Vector2i(-1, -1)
@@ -385,13 +387,14 @@ func _trigger_born_capture_effects(piece: XiangqiPiece) -> void:
 # --- 效果觸發: ONCE (限發動一次，發動完移除效果) ---
 func _trigger_and_consume_once_effects(piece: XiangqiPiece) -> void:
 	var context := {"game_state": self , "side": piece.side, "piece": piece}
-	var to_remove: Array = []
-	for effect in piece.special_effects:
+	# 從尾端向前掃描，避免刪除元素後索引錯位
+	var i := piece.special_effects.size() - 1
+	while i >= 0:
+		var effect = piece.special_effects[i]
 		if effect.timing == SummonEffectTiming.Timing.ONCE:
 			effect.execute(context)
-			to_remove.append(effect)
-	for effect in to_remove:
-		piece.special_effects.erase(effect)
+			piece.special_effects.remove_at(i) # 用索引刪除，不依賴 erase() 的相等比較
+		i -= 1
 
 ## 查詢當前回合擁有可主動發動 ONCE 效果的我方棋子位置清單
 func get_once_effect_pieces() -> Array[Vector2i]:
@@ -416,14 +419,22 @@ func activate_once_effects_on_piece(piece_pos: Vector2i) -> bool:
 	var piece: XiangqiPiece = board.get_piece(piece_pos)
 	if piece == null or piece.side != current_turn:
 		return false
-	var has_once := false
+
+	var context := {"game_state": self , "side": piece.side, "piece": piece}
+	var executable_effects: Array = []
 	for effect in piece.special_effects:
-		if effect.timing == SummonEffectTiming.Timing.ONCE:
-			has_once = true
-			break
-	if not has_once:
+		if effect.timing == SummonEffectTiming.Timing.ONCE and effect.can_execute(context):
+			executable_effects.append(effect)
+	
+	if executable_effects.is_empty():
 		return false
-	_trigger_and_consume_once_effects(piece)
+	
+	# 執行並移除所有符合條件的 ONCE 效果
+	# 這裡不直接改用 _trigger_and_consume_once_effects 是為了複用 executable_effects
+	for effect in executable_effects:
+		effect.execute(context)
+		piece.special_effects.erase(effect) # 原則上對 specific instance 用 erase 是安全的
+	
 	return true
 
 

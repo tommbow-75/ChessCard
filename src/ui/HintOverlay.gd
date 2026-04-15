@@ -22,6 +22,8 @@ var once_popup_visible: bool = false
 var once_popup_grid_pos: Vector2i = Vector2i(-1, -1)
 ## 效果描述文字列表（由 GameUI 組裝後傳入）
 var once_popup_lines: Array[String] = []
+## 是否允許發動（按鈕顏色控制）
+var once_popup_executable: bool = false
 
 ## 輸出 Rect（供 XiangqiGameUI 做點擊 hit-test，單位：HintOverlay 本地座標）
 var once_popup_rect: Rect2 = Rect2()
@@ -124,20 +126,26 @@ func _draw_once_popup() -> void:
 
 	cursor_y += btn_gap
 
-	# ── 發動按鈕（綠） ──
+	# ── 發動按鈕（根據 once_popup_executable 變色） ──
 	var btn_w: float = (popup_width - padding.x * 2.0 - btn_gap) * 0.5
 
 	var activate_rect := Rect2(popup_x + padding.x, cursor_y, btn_w, btn_height)
 	once_activate_btn_rect = activate_rect
-	draw_rect(activate_rect, Color(0.15, 0.68, 0.28, 0.95))
-	draw_rect(activate_rect, Color(0.08, 0.44, 0.18, 1.0), false, 1.5)
+	
+	var btn_color := Color(0.15, 0.68, 0.28, 0.95) if once_popup_executable else Color(0.6, 0.6, 0.6, 0.8)
+	var btn_border := Color(0.08, 0.44, 0.18, 1.0) if once_popup_executable else Color(0.4, 0.4, 0.4, 1.0)
+	var text_color := Color(1, 1, 1) if once_popup_executable else Color(0.8, 0.8, 0.8)
+
+	draw_rect(activate_rect, btn_color)
+	draw_rect(activate_rect, btn_border, false, 1.5)
+	
 	var act_text := "發動"
 	var act_tw: float = font.get_string_size(act_text, HORIZONTAL_ALIGNMENT_LEFT, -1, btn_font_size).x
 	draw_string(font,
 			Vector2(activate_rect.position.x + (btn_w - act_tw) * 0.5,
 					activate_rect.position.y + font.get_ascent(btn_font_size)
 					+ (btn_height - font.get_height(btn_font_size)) * 0.5),
-			act_text, HORIZONTAL_ALIGNMENT_LEFT, -1, btn_font_size, Color(1, 1, 1))
+			act_text, HORIZONTAL_ALIGNMENT_LEFT, -1, btn_font_size, text_color)
 
 	# ── 取消按鈕（紅） ──
 	var cancel_rect := Rect2(popup_x + padding.x + btn_w + btn_gap, cursor_y, btn_w, btn_height)

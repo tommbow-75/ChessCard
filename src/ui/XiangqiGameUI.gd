@@ -196,27 +196,38 @@ func _open_once_popup(piece_pos: Vector2i) -> void:
 	var piece := game.board.get_piece(piece_pos)
 	if piece == null:
 		return
+	
+	var context := {"game_state": game , "side": piece.side, "piece": piece}
 	var lines: Array[String] = []
+	var is_any_executable := false
+	
 	for eff in piece.special_effects:
 		if eff.timing == SummonEffectTiming.Timing.ONCE:
 			lines.append(_get_effect_description(eff))
+			if eff.can_execute(context):
+				is_any_executable = true
+				
 	if lines.is_empty():
 		return
 
 	hint_overlay.once_popup_grid_pos = piece_pos
-	hint_overlay.once_popup_lines    = lines
-	hint_overlay.once_popup_visible  = true
+	hint_overlay.once_popup_lines = lines
+	hint_overlay.once_popup_executable = is_any_executable
+	hint_overlay.once_popup_visible = true
 	hint_overlay.queue_redraw()
 
 ## 關閉浮框
 func _close_once_popup() -> void:
-	hint_overlay.once_popup_visible  = false
+	hint_overlay.once_popup_visible = false
 	hint_overlay.once_popup_grid_pos = Vector2i(-1, -1)
 	hint_overlay.once_popup_lines.clear()
 	hint_overlay.queue_redraw()
 
 ## 點擊「發動」按鈕
 func _on_once_activate_clicked() -> void:
+	if not hint_overlay.once_popup_executable:
+		return
+		
 	var pos: Vector2i = hint_overlay.once_popup_grid_pos
 	_close_once_popup()
 	if game.activate_once_effects_on_piece(pos):
@@ -284,7 +295,7 @@ func refresh_hand() -> void:
 		return
 	var side = game.current_turn
 	var deck = game.deck_red if side == XiangqiPiece.Side.RED else game.deck_black
-	var sp   = game.sp_red if side == XiangqiPiece.Side.RED else game.sp_black
+	var sp = game.sp_red if side == XiangqiPiece.Side.RED else game.sp_black
 
 	var hand: Array = []
 	for c in deck.get_hand():
