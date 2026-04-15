@@ -31,7 +31,6 @@ func update_state(
 		sp_b: int = 0,
 		morale_r: int = 100,
 		morale_b: int = 100,
-		actions_used: int = 0,
 		move_actions: int = 0,
 		card_actions: int = 0,
 		can_end_turn_now: bool = false
@@ -52,7 +51,7 @@ func update_state(
 	sep_label.text = "----------------"
 	black_morale_label.text = "黑方士氣: %d / 100" % morale_b
 	black_sp_label.text = "黑方 SP: %d" % sp_b
-	action_label.text = "本回合動作 %d/%d  |  出牌 %d  |  走子 %d" % [actions_used, XiangqiGame.MAX_ACTIONS_PER_TURN, card_actions, move_actions]
+	action_label.text = "走子 %d/%d 次  |  出牌 %d 次" % [move_actions, XiangqiGame.MAX_MOVE_ACTIONS_PER_TURN, card_actions]
 
 	red_morale_label.modulate = Color.RED if morale_r <= 20 else Color.WHITE
 	black_morale_label.modulate = Color.RED if morale_b <= 20 else Color.WHITE

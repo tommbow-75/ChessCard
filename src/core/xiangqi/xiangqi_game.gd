@@ -1,7 +1,8 @@
 class_name XiangqiGame
 extends RefCounted
 
-const MAX_ACTIONS_PER_TURN: int = 2
+## 每回合最多走棋次數（1次）
+const MAX_MOVE_ACTIONS_PER_TURN: int = 1
 
 var board: XiangqiBoard = XiangqiBoard.new()
 var current_turn: int = XiangqiPiece.Side.RED
@@ -18,8 +19,9 @@ var pending_extra_move_from: Vector2i = Vector2i(-1, -1)
 var pending_extra_move_forbid_capture: bool = false
 var pending_extra_move_forbidden_target: int = ForbidCaptureNextMoveEffect.FORBID_ALL_TARGETS
 
-var actions_used_this_turn: int = 0
+## 本回合已使用的走棋次數
 var move_actions_this_turn: int = 0
+## 本回合已使用的卡牌次數（僅供顯示，無上限限制）
 var card_actions_this_turn: int = 0
 
 var deck_red: DeckSystem = DeckSystem.new()
@@ -94,24 +96,26 @@ func start_turn() -> void:
 	else:
 		sp_black += 1
 
-func get_remaining_actions() -> int:
+func get_remaining_move_actions() -> int:
 	if _has_forced_follow_up_move():
 		return 1
-	return max(0, MAX_ACTIONS_PER_TURN - actions_used_this_turn)
+	return max(0, MAX_MOVE_ACTIONS_PER_TURN - move_actions_this_turn)
 
 func can_take_move_action() -> bool:
 	if is_game_over:
 		return false
 	if _has_forced_follow_up_move():
 		return true
-	return actions_used_this_turn < MAX_ACTIONS_PER_TURN
+	## 走棋次數未達上限
+	return move_actions_this_turn < MAX_MOVE_ACTIONS_PER_TURN
 
 func can_play_card_action() -> bool:
 	if is_game_over:
 		return false
 	if _has_forced_follow_up_move():
 		return false
-	return actions_used_this_turn < MAX_ACTIONS_PER_TURN
+	## 卡牌行動無次數上限，只要 SP 足夠即可發動
+	return true
 
 func can_end_turn() -> bool:
 	if is_game_over:
@@ -236,10 +240,12 @@ func move_piece(from_pos: Vector2i, to_pos: Vector2i) -> bool:
 	board.remove_piece(from_pos)
 	board.set_piece(to_pos, piece)
 
-	if did_capture:
-		_trigger_and_consume_once_effects(piece)
-
 	_consume_move_action()
+
+	# --- 移動完成後回調所有效果進行清理或狀態更新 ---
+	var callback_context := {"game_state": self, "piece": piece, "did_capture": did_capture}
+	for eff in piece.special_effects:
+		eff.on_move_completed(callback_context)
 
 	if locked_strategy_from != Vector2i(-1, -1):
 		pending_extra_move_from = Vector2i(-1, -1)
@@ -381,27 +387,67 @@ func _trigger_born_capture_effects(piece: XiangqiPiece) -> void:
 # --- 效果觸發: ONCE (限發動一次，發動完移除效果) ---
 func _trigger_and_consume_once_effects(piece: XiangqiPiece) -> void:
 	var context := {"game_state": self , "side": piece.side, "piece": piece}
-	var to_remove: Array = []
-	for effect in piece.special_effects:
+	# 從尾端向前掃描，避免刪除元素後索引錯位
+	var i := piece.special_effects.size() - 1
+	while i >= 0:
+		var effect = piece.special_effects[i]
 		if effect.timing == SummonEffectTiming.Timing.ONCE:
 			effect.execute(context)
-			to_remove.append(effect)
-	for effect in to_remove:
-		piece.special_effects.erase(effect)
+			piece.special_effects.remove_at(i) # 用索引刪除，不依賴 erase() 的相等比較
+		i -= 1
+
+## 查詢當前回合擁有可主動發動 ONCE 效果的我方棋子位置清單
+func get_once_effect_pieces() -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	if is_game_over:
+		return result
+	for pos in board.pieces:
+		var piece: XiangqiPiece = board.pieces[pos]
+		if piece.side != current_turn:
+			continue
+		for effect in piece.special_effects:
+			if effect.timing == SummonEffectTiming.Timing.ONCE:
+				result.append(pos)
+				break
+	return result
+
+## 玩家主動觸發 piece_pos 棋子上的所有 ONCE 效果並移除
+## 回傳 true 代表成功發動（至少有一個 ONCE 效果）
+func activate_once_effects_on_piece(piece_pos: Vector2i) -> bool:
+	if is_game_over:
+		return false
+	var piece: XiangqiPiece = board.get_piece(piece_pos)
+	if piece == null or piece.side != current_turn:
+		return false
+
+	var context := {"game_state": self , "side": piece.side, "piece": piece}
+	var executable_effects: Array = []
+	for effect in piece.special_effects:
+		if effect.timing == SummonEffectTiming.Timing.ONCE and effect.can_execute(context):
+			executable_effects.append(effect)
+	
+	if executable_effects.is_empty():
+		return false
+	
+	# 執行並移除所有符合條件的 ONCE 效果
+	# 這裡不直接改用 _trigger_and_consume_once_effects 是為了複用 executable_effects
+	for effect in executable_effects:
+		effect.execute(context)
+		piece.special_effects.erase(effect) # 原則上對 specific instance 用 erase 是安全的
+	
+	return true
+
 
 func _has_forced_follow_up_move() -> bool:
 	return pending_extra_move or pending_extra_move_from != Vector2i(-1, -1)
 
 func _consume_move_action() -> void:
-	actions_used_this_turn += 1
 	move_actions_this_turn += 1
 
 func _consume_card_action() -> void:
-	actions_used_this_turn += 1
 	card_actions_this_turn += 1
 
 func _reset_turn_state() -> void:
-	actions_used_this_turn = 0
 	move_actions_this_turn = 0
 	card_actions_this_turn = 0
 	pending_extra_move = false
